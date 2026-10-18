@@ -278,49 +278,44 @@ def generate_rune_circle():
 # WALL TILES (64x64 & 64x96)
 # ==============================================================================
 
+WALL_SLOPE = 16.0 / 27.712812  # Exact 2.5D dimetric projection slope: ~0.577350288
+
+
 def generate_wall_cast_iron_nw():
-    """Wall 1 (64x64): Cast-iron modular wall facing North-West with 3D top cap and horizontal ashlar courses."""
+    """Wall 1 (64x64): Cast-iron modular wall facing North-West (along world X axis, slope +16/27.71)."""
     diff = create_blank_tile(64, 64)
     norm = create_blank_normal(64, 64)
 
-    # Base footprint is at bottom, wall faces NW: floor_y = 32 + x * 0.5
+    # North-West wall slopes up-right on screen (ScreenY increases with X).
+    # In PIL image coordinates (where y=0 is top): floor_y decreases as X increases.
     for x in range(64):
-        floor_y = int(32 + x * 0.5)
-        front_top_y = floor_y - 32
-        cap_back_y = max(0, front_top_y - 6)
+        floor_y = int(48 - (x - 31.5) * WALL_SLOPE)
+        front_top_y = floor_y - 28
+        cap_back_y = max(0, front_top_y - 8)
 
-        # 1. Top Horizontal Cap (depth 6px viewed from above)
+        # 1. Top Horizontal Cap (depth 8px viewed from above)
         for y in range(cap_back_y, front_top_y):
             diff[y, x, 3] = 255
             norm[y, x, 3] = 255
 
-            # Top surface normal: pointing UP and tilted camera-facing
             norm[y, x, 0] = 128
-            norm[y, x, 1] = 218
+            norm[y, x, 1] = 220
             norm[y, x, 2] = 220
 
             if y == cap_back_y:
-                diff[y, x, :3] = C_BASALT_DEEP
+                diff[y, x, :3] = C_BASALT_DARK
             elif y == front_top_y - 1:
-                # Top front bevel rim
                 diff[y, x, :3] = C_BRONZE_HIGHLIGHT
             else:
-                # Brushed basalt/iron top slab
-                if (x + y * 2) % 5 == 0:
-                    diff[y, x, :3] = C_BASALT_HIGHLIGHT
-                elif (x * 3 + y) % 7 == 0:
-                    diff[y, x, :3] = C_BASALT_LIGHT
-                else:
-                    diff[y, x, :3] = C_BASALT_MID
+                diff[y, x, :3] = C_BASALT_MID if (x + y) % 3 == 0 else C_BASALT_BASE
 
         # 2. Front Vertical Face (Ashlar Iron Plating)
-        for y in range(front_top_y, floor_y + 1):
+        for y in range(front_top_y, min(64, floor_y + 1)):
             diff[y, x, 3] = 255
             norm[y, x, 3] = 255
 
             rel_y = y - front_top_y
 
-            # Default vertical face normal: facing NW in screen space
             nx = -0.42
             ny = 0.25
             nz = math.sqrt(max(0.1, 1.0 - nx*nx - ny*ny))
@@ -329,43 +324,31 @@ def generate_wall_cast_iron_nw():
             norm[y, x, 2] = int(nz * 127 + 128)
 
             if rel_y == 0:
-                # Deep drop shadow under top front rim
                 diff[y, x, :3] = C_DARK_VOID
                 norm[y, x, 1] = 100
-            elif rel_y in (10, 21):
-                # Recessed horizontal seam grooves between plates
+            elif rel_y in (8, 17):
                 diff[y, x, :3] = C_IRON_SHADOW
                 norm[y, x, 1] = int((ny - 0.35) * 127 + 128)
-            elif rel_y in (11, 22):
-                # Lower bronze bevel trim on seam
+            elif rel_y in (9, 18):
                 diff[y, x, :3] = C_BRONZE_BASE
                 norm[y, x, 1] = int((ny + 0.35) * 127 + 128)
-            elif rel_y == 29:
-                # Cast-iron base molding bevel
+            elif rel_y == 25:
                 diff[y, x, :3] = C_BRONZE_LIGHT
                 norm[y, x, 1] = int((ny + 0.40) * 127 + 128)
-            elif rel_y in (30, 31):
-                # Heavy cast-iron base kickplate
+            elif rel_y in (26, 27):
                 diff[y, x, :3] = C_IRON_DARK
                 norm[y, x, 1] = 120
-            elif rel_y >= 32:
-                # Contact ground shadow anchoring wall into floor
+            elif rel_y >= 28:
                 diff[y, x, :3] = C_DARK_VOID
                 norm[y, x, 1] = 80
             else:
-                # Solid horizontal ashlar plate body
-                if rel_y % 3 == 0:
-                    diff[y, x, :3] = C_IRON_MID
-                elif (x * 7 + y * 11) % 19 == 0:
-                    diff[y, x, :3] = C_BRONZE_BASE
-                else:
-                    diff[y, x, :3] = C_IRON_BASE
+                diff[y, x, :3] = C_IRON_MID if rel_y % 3 == 0 else C_IRON_BASE
 
     # Domed Rivets along horizontal seams
-    rivet_x_positions = [12, 28, 44, 60]
+    rivet_x_positions = [10, 24, 38, 52]
     for rx in rivet_x_positions:
-        front_top_at_rx = int(rx * 0.5)
-        for seam_rel_y in (10, 21):
+        front_top_at_rx = int(48 - (rx - 31.5) * WALL_SLOPE) - 28
+        for seam_rel_y in (8, 17):
             ry = front_top_at_rx + seam_rel_y
             for dy in range(-1, 2):
                 for dx in range(-1, 2):
@@ -382,14 +365,15 @@ def generate_wall_cast_iron_nw():
 
 
 def generate_wall_cast_iron_ne():
-    """Wall 2 (64x64): Cast-iron modular wall facing North-East with 3D top cap and horizontal ashlar courses."""
+    """Wall 2 (64x64): Cast-iron modular wall facing North-East (along world Y axis, slope -16/27.71)."""
     diff = create_blank_tile(64, 64)
     norm = create_blank_normal(64, 64)
 
+    # North-East wall slopes down-right on screen: floor_y increases as X increases.
     for x in range(64):
-        floor_y = int(63 - x * 0.5)
-        front_top_y = floor_y - 32
-        cap_back_y = max(0, front_top_y - 6)
+        floor_y = int(48 + (x - 31.5) * WALL_SLOPE)
+        front_top_y = floor_y - 28
+        cap_back_y = max(0, front_top_y - 8)
 
         # 1. Top Horizontal Cap
         for y in range(cap_back_y, front_top_y):
@@ -397,29 +381,23 @@ def generate_wall_cast_iron_ne():
             norm[y, x, 3] = 255
 
             norm[y, x, 0] = 128
-            norm[y, x, 1] = 218
+            norm[y, x, 1] = 220
             norm[y, x, 2] = 220
 
             if y == cap_back_y:
-                diff[y, x, :3] = C_BASALT_DEEP
+                diff[y, x, :3] = C_BASALT_DARK
             elif y == front_top_y - 1:
                 diff[y, x, :3] = C_BRONZE_HIGHLIGHT
             else:
-                if (x + y * 2) % 5 == 0:
-                    diff[y, x, :3] = C_BASALT_HIGHLIGHT
-                elif (x * 3 + y) % 7 == 0:
-                    diff[y, x, :3] = C_BASALT_LIGHT
-                else:
-                    diff[y, x, :3] = C_BASALT_MID
+                diff[y, x, :3] = C_BASALT_MID if (x + y) % 3 == 0 else C_BASALT_BASE
 
         # 2. Front Vertical Face
-        for y in range(front_top_y, floor_y + 1):
+        for y in range(front_top_y, min(64, floor_y + 1)):
             diff[y, x, 3] = 255
             norm[y, x, 3] = 255
 
             rel_y = y - front_top_y
 
-            # Default vertical face normal: facing NE in screen space
             nx = 0.42
             ny = 0.25
             nz = math.sqrt(max(0.1, 1.0 - nx*nx - ny*ny))
@@ -430,34 +408,29 @@ def generate_wall_cast_iron_ne():
             if rel_y == 0:
                 diff[y, x, :3] = C_DARK_VOID
                 norm[y, x, 1] = 100
-            elif rel_y in (10, 21):
+            elif rel_y in (8, 17):
                 diff[y, x, :3] = C_IRON_SHADOW
                 norm[y, x, 1] = int((ny - 0.35) * 127 + 128)
-            elif rel_y in (11, 22):
+            elif rel_y in (9, 18):
                 diff[y, x, :3] = C_BRONZE_BASE
                 norm[y, x, 1] = int((ny + 0.35) * 127 + 128)
-            elif rel_y == 29:
+            elif rel_y == 25:
                 diff[y, x, :3] = C_BRONZE_LIGHT
                 norm[y, x, 1] = int((ny + 0.40) * 127 + 128)
-            elif rel_y in (30, 31):
+            elif rel_y in (26, 27):
                 diff[y, x, :3] = C_IRON_DARK
                 norm[y, x, 1] = 120
-            elif rel_y >= 32:
+            elif rel_y >= 28:
                 diff[y, x, :3] = C_DARK_VOID
                 norm[y, x, 1] = 80
             else:
-                if rel_y % 3 == 0:
-                    diff[y, x, :3] = C_IRON_MID
-                elif (x * 7 + y * 11) % 19 == 0:
-                    diff[y, x, :3] = C_BRONZE_BASE
-                else:
-                    diff[y, x, :3] = C_IRON_BASE
+                diff[y, x, :3] = C_IRON_MID if rel_y % 3 == 0 else C_IRON_BASE
 
     # Domed Rivets along horizontal seams
-    rivet_x_positions = [4, 20, 36, 52]
+    rivet_x_positions = [10, 24, 38, 52]
     for rx in rivet_x_positions:
-        front_top_at_rx = int(31 - rx * 0.5)
-        for seam_rel_y in (10, 21):
+        front_top_at_rx = int(48 + (rx - 31.5) * WALL_SLOPE) - 28
+        for seam_rel_y in (8, 17):
             ry = front_top_at_rx + seam_rel_y
             for dy in range(-1, 2):
                 for dx in range(-1, 2):
@@ -481,21 +454,19 @@ def generate_wall_corner_outer():
     diff = create_blank_tile(64, 64)
     norm = create_blank_normal(64, 64)
 
-    # Combine left half of NW wall (x < 32) and right half of NE wall (x >= 32)
+    # Left half (x < 32) is NW wall, Right half (x >= 32) is NE wall
     diff[:, :32] = diff_nw[:, :32]
     norm[:, :32] = norm_nw[:, :32]
     diff[:, 32:] = diff_ne[:, 32:]
     norm[:, 32:] = norm_ne[:, 32:]
 
     # Reinforced monolithic bronze corner buttress / pylon at apex (x in 29..34)
-    for y in range(0, 52):
+    for y in range(16, 52):
         for cx in range(29, 35):
-            # Only draw where either NW or NE wall was active
-            if diff_nw[y, cx, 3] > 0 or diff_ne[y, cx, 3] > 0 or y in range(10, 48):
+            if diff_nw[y, cx, 3] > 0 or diff_ne[y, cx, 3] > 0 or y in range(20, 48):
                 diff[y, cx, 3] = 255
                 norm[y, cx, 3] = 255
 
-                # Domed corner normal pointing directly outward
                 dx = (cx - 31.5) / 3.0
                 norm[y, cx, 0] = int(dx * 60 + 128)
                 norm[y, cx, 1] = 140
@@ -508,7 +479,6 @@ def generate_wall_corner_outer():
                 else:
                     diff[y, cx, :3] = C_BRONZE_BASE
 
-                # Corner heavy rivets every 8 pixels vertically
                 if y % 8 == 4 and cx in (30, 31, 32, 33):
                     diff[y, cx, :3] = C_SPARK_YELLOW if cx in (31, 32) else C_AMBER_GOLD
 
@@ -520,7 +490,6 @@ def generate_pillar_column():
     diff = create_blank_tile(64, 96)
     norm = create_blank_normal(64, 96)
 
-    # Column center: x=31.5, column radius=14, height spans y=16..84
     col_cx = 31.5
     col_rad = 14.0
 
@@ -531,7 +500,6 @@ def generate_pillar_column():
                 diff[y, x, 3] = 255
                 norm[y, x, 3] = 255
 
-                # Cylindrical curvature normal: nx sweeps from -0.7 to +0.7
                 nx = dx * 0.70
                 ny = 0.15
                 nz = math.sqrt(max(0.1, 1.0 - nx*nx - ny*ny))
@@ -539,9 +507,7 @@ def generate_pillar_column():
                 norm[y, x, 1] = int(ny * 127 + 128)
                 norm[y, x, 2] = int(nz * 127 + 128)
 
-                # Collar bands (top capital, mid band, base plinth)
                 if y in range(12, 18) or y in range(48, 52) or y in range(86, 92):
-                    # Brass / Bronze bands
                     if dx < -0.3:
                         diff[y, x, :3] = C_BRONZE_BASE
                     elif dx < 0.3:
@@ -549,7 +515,6 @@ def generate_pillar_column():
                     else:
                         diff[y, x, :3] = C_BRONZE_LIGHT
                 else:
-                    # Basalt column body
                     if dx < -0.4:
                         diff[y, x, :3] = C_BASALT_DEEP
                     elif dx < 0.2:
@@ -559,7 +524,6 @@ def generate_pillar_column():
                     else:
                         diff[y, x, :3] = C_BASALT_LIGHT
 
-    # Beveled base diamond plinth at feet (y: 78 to 96)
     for y in range(78, 96):
         for x in range(64):
             if inside_diamond(x, y - 64, cx=31.5, cy=23.5, rx=24.0, ry=12.0):
@@ -575,24 +539,21 @@ def generate_wall_furnace_vent():
     """Wall 4 (64x64): Cast-iron wall with authentic arched industrial blast furnace embrasure."""
     diff, norm = generate_wall_cast_iron_nw()
 
-    # Arched blast furnace embrasure centered at cx=32, spanning rel_y from 8 to 26
-    # Front top at x=32 is 16, so y spans 24 to 42
-    for x in range(20, 44):
-        front_top_x = int(x * 0.5)
-        for y in range(front_top_x + 6, front_top_x + 26):
+    # Arched blast furnace embrasure centered at cx=31.5 on the NW wall face
+    for x in range(22, 42):
+        front_top_x = int(48 - (x - 31.5) * WALL_SLOPE) - 28
+        for y in range(front_top_x + 3, front_top_x + 22):
             if not (0 <= y < 64 and diff[y, x, 3] > 0):
                 continue
 
             rel_y = y - front_top_x
-            dx = (x - 31.5) / 10.5
-            dy = (rel_y - 16.0) / 9.0
+            dx = (x - 31.5) / 8.5
+            dy = (rel_y - 12.0) / 8.0
             dist_sq = dx*dx + dy*dy
 
             if dist_sq < 0.65:
-                # Glowing blast furnace interior with molten incandescent core
                 heat = math.cos(dx * 1.5) * math.cos(dy * 1.5)
-                # Cast-iron lattice grate bars
-                if (x + y) % 5 == 0 or (x - y) % 5 == 0:
+                if (x + y) % 4 == 0 or (x - y) % 4 == 0:
                     diff[y, x, :3] = C_IRON_SHADOW
                     norm[y, x, :3] = (128, 128, 210)
                 elif heat > 0.6:
@@ -605,9 +566,8 @@ def generate_wall_furnace_vent():
                     diff[y, x, :3] = C_LAVA_CORE
                     norm[y, x, :3] = (128, 128, 190)
             elif dist_sq <= 1.05:
-                # Heavy cast-iron arched embrasure rim with bronze lintel bevel
                 if dy < -0.3:
-                    diff[y, x, :3] = C_BRONZE_HIGHLIGHT # Top arch lintel highlight
+                    diff[y, x, :3] = C_BRONZE_HIGHLIGHT
                     norm[y, x, 1] = 200
                 elif dist_sq > 0.88:
                     diff[y, x, :3] = C_BRONZE_LIGHT

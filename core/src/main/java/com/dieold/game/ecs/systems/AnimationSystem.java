@@ -150,7 +150,7 @@ public class AnimationSystem extends EntitySystem {
             anim.lastComboStep = 0;
             anim.setAction("deflect_stance", true, 0.10f);
         } else if (combat.state == CombatStateComponent.State.ATTACKING) {
-            float dur = (combat.comboStep == 3) ? 0.115f : (combat.comboStep == 2 ? 0.090f : 0.085f);
+            float dur = (combat.comboStep == 3) ? 0.125f : (combat.comboStep == 2 ? 0.105f : 0.095f);
             if (anim.lastComboStep != combat.comboStep) {
                 anim.stateTime = 0f;
                 anim.finished = false;
@@ -163,7 +163,7 @@ public class AnimationSystem extends EntitySystem {
                 anim.finished = false;
                 anim.lastComboStep = -1;
             }
-            anim.setAction("attack_light_combo", false, 0.115f);
+            anim.setAction("attack_light_combo", false, 0.135f);
         } else if (enemy != null && enemy.aiState == EnemyComponent.AIState.TELEGRAPHING) {
             anim.lastComboStep = 0;
             anim.setAction("pounce_telegraph", false, 0.080f);
@@ -197,6 +197,8 @@ public class AnimationSystem extends EntitySystem {
                 frames = atlas.findRegions(character + "_" + action + "_dir0");
             }
             if (frames != null && frames.size > 0) {
+                // Strictly sort regions by index so alphanumeric packing order does not skip frames
+                frames.sort((a, b) -> Integer.compare(a.index, b.index));
                 regionCache.put(key, frames);
             }
         }
@@ -208,6 +210,7 @@ public class AnimationSystem extends EntitySystem {
         if (frames == null) {
             frames = atlas.findRegions(vfxName);
             if (frames != null && frames.size > 0) {
+                frames.sort((a, b) -> Integer.compare(a.index, b.index));
                 regionCache.put(vfxName, frames);
             }
         }

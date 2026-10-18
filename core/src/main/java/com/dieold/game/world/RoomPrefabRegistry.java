@@ -114,12 +114,10 @@ public class RoomPrefabRegistry {
         t.addHazard(2.5f, 10.5f);
         t.addHazard(3.5f, 10.5f);
 
-        // Tactical Master Anvils (Wall-slam & cover)
-        t.setTile(4, 4, TileType.PROP_FORGE_ANVIL);
-        t.setTile(9, 9, TileType.PROP_FORGE_ANVIL);
-
-        // Slag Crucible in alcove
-        t.setTile(11, 4, TileType.PROP_SLAG_CAULDRON);
+        // Tactical perimeter workstation alcoves (keeps center clear for dodging)
+        t.setTile(2, 3, TileType.PROP_FORGE_ANVIL);
+        t.setTile(11, 11, TileType.PROP_FORGE_ANVIL);
+        t.setTile(11, 3, TileType.PROP_SLAG_CAULDRON);
 
         // Enemy Hound spawns
         t.addEnemySpawn(3.5f, 6.5f);
@@ -149,9 +147,15 @@ public class RoomPrefabRegistry {
             t.addPillar(px + 0.5f, py + 0.5f);
         }
 
-        // Central Master Anvil centerpiece
-        t.setTile(9, 9, TileType.PROP_FORGE_ANVIL);
-        t.setTile(10, 10, TileType.PROP_SLAG_CAULDRON);
+        // Central Chrono-Rune Dais (clean open floor for 360° combat mobility)
+        t.setTile(9, 9, TileType.FLOOR_RUNE_CIRCLE);
+        t.setTile(10, 9, TileType.FLOOR_RUNE_CIRCLE);
+        t.setTile(9, 10, TileType.FLOOR_RUNE_CIRCLE);
+        t.setTile(10, 10, TileType.FLOOR_RUNE_CIRCLE);
+
+        // Perimeter Master Blacksmith Workstation (along north alcove wall)
+        t.setTile(3, 17, TileType.PROP_FORGE_ANVIL);
+        t.setTile(4, 17, TileType.PROP_SLAG_CAULDRON);
 
         // Localized perimeter hazard trenches
         t.setTile(2, 9, TileType.FLOOR_MAGMA_FISSURE);
@@ -288,9 +292,9 @@ public class RoomPrefabRegistry {
         t.setTile(4, 8, TileType.PROP_SLAG_CAULDRON);
         t.setTile(11, 8, TileType.PROP_SLAG_CAULDRON);
 
-        // Tactical cover anvils
-        t.setTile(8, 5, TileType.PROP_FORGE_ANVIL);
-        t.setTile(8, 10, TileType.PROP_FORGE_ANVIL);
+        // Tactical perimeter workstation alcoves
+        t.setTile(2, 7, TileType.PROP_FORGE_ANVIL);
+        t.setTile(13, 7, TileType.PROP_FORGE_ANVIL);
 
         // Magma fissures & vents
         t.setTile(5, 5, TileType.FLOOR_MAGMA_FISSURE);
@@ -372,9 +376,9 @@ public class RoomPrefabRegistry {
             t.addPillar(px + 0.5f, py + 0.5f);
         }
 
-        // Master Anvils flanking the central aisle
-        t.setTile(7, 8, TileType.PROP_FORGE_ANVIL);
-        t.setTile(12, 8, TileType.PROP_FORGE_ANVIL);
+        // Perimeter Master Anvils flanking outer walls
+        t.setTile(3, 8, TileType.PROP_FORGE_ANVIL);
+        t.setTile(16, 8, TileType.PROP_FORGE_ANVIL);
 
         // Slag Cauldrons framing the Boss Vault Door
         t.setTile(6, 15, TileType.PROP_SLAG_CAULDRON);

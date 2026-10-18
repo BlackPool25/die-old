@@ -92,12 +92,15 @@ public class InputSystem extends EntitySystem {
         float worldAngle = MathUtils.radiansToDegrees * MathUtils.atan2(worldDY, worldDX);
         combat.deflectAngle = worldAngle;
 
-        // In deflect stance or attacking, aim overrides facing directly towards the mouse cursor
-        if (combat.state == CombatStateComponent.State.DEFLECTING
-            || combat.state == CombatStateComponent.State.ATTACKING
-            || combat.state == CombatStateComponent.State.HEAVY_ATTACKING) {
-            direction.setFromScreenAngle(screenAngle);
-            direction.angleDegrees = worldAngle;
+        // Aim deadzone check: only steer facing towards cursor if outside deadzone to prevent 180° snap when lunging past cursor
+        float distToCursor = (float) Math.hypot(screenDX, screenDY);
+        if (distToCursor > 26.0f) {
+            if (combat.state == CombatStateComponent.State.DEFLECTING
+                || combat.state == CombatStateComponent.State.ATTACKING
+                || combat.state == CombatStateComponent.State.HEAVY_ATTACKING) {
+                direction.setFromScreenAngle(screenAngle);
+                direction.angleDegrees = worldAngle;
+            }
         }
 
         // 2. Dash Pip Recharge
@@ -158,6 +161,7 @@ public class InputSystem extends EntitySystem {
             combat.transitionTo(CombatStateComponent.State.HEAVY_ATTACKING);
             combat.comboStep = 3;
             combat.stateTimer = 0f;
+            combat.heavyAttackCooldownTimer = CombatStateComponent.HEAVY_ATTACK_COOLDOWN;
 
             // Powerful forward lunge
             float heavyLunge = 5.5f;

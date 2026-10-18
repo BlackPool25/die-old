@@ -3,6 +3,7 @@ package com.dieold.game.screens;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -184,12 +185,50 @@ public class PlaygroundScreen implements Screen,
         // 2. Update ECS Engine
         engine.update(delta);
 
-        // 3. Update & Draw HUD
+        // 3. Chrono-Chest Proximity Interaction
+        boolean nearChest = false;
+        if (player != null && dungeonLevel != null) {
+            Transform2DComponent pTransform = ComponentMappers.transform.get(player);
+            if (pTransform != null) {
+                float px = pTransform.position.x;
+                float py = pTransform.position.y;
+                for (int c = 0; c < dungeonLevel.chronoChests.size; c++) {
+                    DungeonLevel.ChronoChestItem chest = dungeonLevel.chronoChests.get(c);
+                    if (!chest.opened) {
+                        float dist = (float) Math.hypot(chest.worldX - px, chest.worldY - py);
+                        if (dist <= 1.6f) {
+                            nearChest = true;
+                            if (Gdx.input.isKeyJustPressed(Keys.E)) {
+                                chest.opened = true;
+                                screenShake.addShake(4.5f, 0.22f);
+                                entityFactory.createVFX("deflect_spark", chest.worldX, chest.worldY, 90f, 1.5f);
+                                entityFactory.createVFX("dust_puff", chest.worldX, chest.worldY, 0f, 1.2f);
+
+                                // Heal player and restore dash pips
+                                HealthComponent hp = ComponentMappers.health.get(player);
+                                if (hp != null) {
+                                    hp.currentHp = Math.min(hp.maxHp, hp.currentHp + 35f);
+                                    hp.ghostHp = hp.currentHp;
+                                }
+                                PlayerComponent pc = ComponentMappers.player.get(player);
+                                if (pc != null) {
+                                    pc.dashPips = pc.maxDashPips;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 4. Update & Draw HUD
         if (player != null) {
             PlayerComponent playerComp = ComponentMappers.player.get(player);
             HealthComponent health = ComponentMappers.health.get(player);
             PoiseComponent poise = ComponentMappers.poise.get(player);
-            hud.update(delta, playerComp, health, poise);
+            CombatStateComponent combat = ComponentMappers.combat.get(player);
+            hud.update(delta, playerComp, health, poise, combat, nearChest);
             hud.draw();
         }
     }
@@ -201,23 +240,31 @@ public class PlaygroundScreen implements Screen,
         if (transform == null) return;
 
         // Spawn slash arc VFX oriented towards the mouse cursor on screen
-        float spawnDist = (comboStep == 3) ? 1.0f : 0.8f;
+        float spawnDist = (comboStep == 3) ? 1.05f : 0.85f;
         float sx = transform.position.x + MathUtils.cosDeg(worldAngle) * spawnDist;
         float sy = transform.position.y + MathUtils.sinDeg(worldAngle) * spawnDist;
 
-        float vfxScale = (comboStep == 3) ? 1.5f : (comboStep == 2 ? 1.3f : 1.15f);
-        entityFactory.createVFX("slash_arc", sx, sy, screenAngle, vfxScale);
-
-        // If finisher combo step 3: trigger attack screen shake and dust puff at feet
-        if (comboStep == 3) {
-            screenShake.addShake(4.0f, 0.18f);
-            entityFactory.createVFX("dust_puff", transform.position.x, transform.position.y, screenAngle + 180f, 1.0f);
+        if (comboStep == 1) {
+            // Step 1: Chrono-Jab thrust with sharp tip spark and crisp screen punch
+            entityFactory.createVFX("slash_arc", sx, sy, screenAngle, 1.15f);
+            entityFactory.createVFX("deflect_spark", sx, sy, screenAngle, 0.85f);
+            screenShake.addShake(1.6f, 0.08f);
+        } else if (comboStep == 2) {
+            // Step 2: Wide horizontal cleave
+            entityFactory.createVFX("slash_arc", sx, sy, screenAngle, 1.35f);
+            screenShake.addShake(2.6f, 0.12f);
+        } else {
+            // Step 3: Alchemical Earth Slam finisher with dust shockwave and visceral jolt
+            entityFactory.createVFX("slash_arc", sx, sy, screenAngle, 1.65f);
+            entityFactory.createVFX("dust_puff", transform.position.x, transform.position.y, screenAngle + 180f, 1.25f);
+            entityFactory.createVFX("deflect_spark", sx, sy, screenAngle, 1.2f);
+            screenShake.addShake(5.5f, 0.22f);
         }
 
         // Create melee damage hitbox with progressive combo damage and poise damage
-        float damage = (comboStep == 3) ? 45f : (comboStep == 2 ? 30f : 25f);
-        float poiseDamage = (comboStep == 3) ? 60f : (comboStep == 2 ? 40f : 35f);
-        float knockback = (comboStep == 3) ? 12.0f : (comboStep == 2 ? 7.5f : 6.0f);
+        float damage = (comboStep == 3) ? 50f : (comboStep == 2 ? 35f : 25f);
+        float poiseDamage = (comboStep == 3) ? 70f : (comboStep == 2 ? 45f : 35f);
+        float knockback = (comboStep == 3) ? 14.0f : (comboStep == 2 ? 8.5f : 6.5f);
         entityFactory.createMeleeHitbox(player, sx, sy, worldAngle, damage, poiseDamage, knockback, 0);
     }
 
@@ -226,21 +273,26 @@ public class PlaygroundScreen implements Screen,
         Transform2DComponent transform = ComponentMappers.transform.get(player);
         if (transform == null) return;
 
-        // Spawn heavy cleave slash arc VFX (1.8x massive blade arc)
-        float spawnDist = 1.05f;
+        // Spawn heavy cleave slash arc VFX (1.9x massive blade arc)
+        float spawnDist = 1.10f;
         float sx = transform.position.x + MathUtils.cosDeg(worldAngle) * spawnDist;
         float sy = transform.position.y + MathUtils.sinDeg(worldAngle) * spawnDist;
 
-        entityFactory.createVFX("slash_arc", sx, sy, screenAngle, 1.8f);
-
-        // Ground dust shockwave at player's feet
-        entityFactory.createVFX("dust_puff", transform.position.x, transform.position.y, screenAngle + 180f, 1.3f);
+        entityFactory.createVFX("slash_arc", sx, sy, screenAngle, 1.9f);
+        entityFactory.createVFX("deflect_spark", sx, sy, screenAngle, 1.4f);
+        entityFactory.createVFX("dust_puff", transform.position.x, transform.position.y, screenAngle + 180f, 1.4f);
 
         // Visceral heavy attack screen shake jolt
-        screenShake.addShake(7.0f, 0.25f);
+        screenShake.addShake(7.5f, 0.26f);
 
-        // Heavy attack: 60 damage, 85 poise damage (instant hound posture break), 15.0 knockback
-        entityFactory.createMeleeHitbox(player, sx, sy, worldAngle, 60f, 85f, 15.0f, 0);
+        // Heavy attack melee hitbox: 65 damage, 90 poise damage (instant hound posture break), 16.0 knockback
+        entityFactory.createMeleeHitbox(player, sx, sy, worldAngle, 65f, 90f, 16.0f, 0);
+
+        // Fire Kinetic Blade Wave projectile forward along the ground
+        float bladeWaveSpeed = 12.0f;
+        float pvx = MathUtils.cosDeg(worldAngle) * bladeWaveSpeed;
+        float pvy = MathUtils.sinDeg(worldAngle) * bladeWaveSpeed;
+        entityFactory.createProjectile(sx, sy, pvx, pvy, 0);
     }
 
     @Override

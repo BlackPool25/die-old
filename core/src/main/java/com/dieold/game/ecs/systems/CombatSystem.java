@@ -91,6 +91,11 @@ public class CombatSystem extends EntitySystem {
                 health.isInvulnerable = false;
             }
 
+            // Heavy attack cooldown countdown
+            if (combat.heavyAttackCooldownTimer > 0f) {
+                combat.heavyAttackCooldownTimer = Math.max(0f, combat.heavyAttackCooldownTimer - deltaTime);
+            }
+
             // State specific logic
             switch (combat.state) {
                 case DASHING:
@@ -105,8 +110,13 @@ public class CombatSystem extends EntitySystem {
 
                 case ATTACKING:
                     combat.comboResetTimer -= deltaTime;
-                    float attackDuration = (combat.comboStep == 3) ? 0.55f : 0.34f;
-                    float cancelWindow = (combat.comboStep == 3) ? 0.28f : 0.16f;
+                    float attackDuration = (combat.comboStep == 3) ? 0.625f : (combat.comboStep == 2 ? 0.42f : 0.38f);
+                    float cancelWindow = (combat.comboStep == 3) ? 0.36f : (combat.comboStep == 2 ? 0.24f : 0.20f);
+
+                    // Smooth velocity deceleration on lunge
+                    if (bodyComp != null && bodyComp.body != null) {
+                        bodyComp.body.setLinearVelocity(bodyComp.body.getLinearVelocity().scl(0.91f));
+                    }
 
                     if (combat.stateTimer >= cancelWindow) {
                         combat.comboWindowOpen = true;
@@ -123,7 +133,11 @@ public class CombatSystem extends EntitySystem {
                     break;
 
                 case HEAVY_ATTACKING:
-                    if (combat.stateTimer >= 0.55f) {
+                    // Smooth velocity deceleration on heavy lunge
+                    if (bodyComp != null && bodyComp.body != null) {
+                        bodyComp.body.setLinearVelocity(bodyComp.body.getLinearVelocity().scl(0.92f));
+                    }
+                    if (combat.stateTimer >= 0.675f) {
                         combat.transitionTo(CombatStateComponent.State.IDLE);
                         if (bodyComp != null && bodyComp.body != null) {
                             bodyComp.body.setLinearVelocity(0f, 0f);

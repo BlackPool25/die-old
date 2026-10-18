@@ -1,14 +1,17 @@
 package com.dieold.game.ui;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.dieold.game.ecs.components.CombatStateComponent;
 import com.dieold.game.ecs.components.HealthComponent;
 import com.dieold.game.ecs.components.PlayerComponent;
 import com.dieold.game.ecs.components.PoiseComponent;
@@ -30,6 +33,7 @@ public class CombatHUD {
     private HealthMeterActor healthMeterActor;
     private DashPipsActor dashPipsActor;
     private RunicMatrixActor runicMatrixActor;
+    private CrosshairReticleActor crosshairActor;
 
     public CombatHUD(Viewport viewport, TextureAtlas uiAtlas) {
         this.stage = new Stage(viewport);
@@ -51,13 +55,27 @@ public class CombatHUD {
         runicMatrixActor = new RunicMatrixActor(uiAtlas);
         runicMatrixActor.setPosition(stage.getViewport().getWorldWidth() - 360, 24);
 
+        crosshairActor = new CrosshairReticleActor(uiAtlas);
+
         stage.addActor(pendantActor);
         stage.addActor(healthMeterActor);
         stage.addActor(dashPipsActor);
         stage.addActor(runicMatrixActor);
+        stage.addActor(crosshairActor);
     }
 
     public void update(float dt, PlayerComponent player, HealthComponent health, PoiseComponent poise) {
+        update(dt, player, health, poise, null, false);
+    }
+
+    public void update(
+        float dt,
+        PlayerComponent player,
+        HealthComponent health,
+        PoiseComponent poise,
+        com.dieold.game.ecs.components.CombatStateComponent combat,
+        boolean nearChest
+    ) {
         if (player != null) {
             pendantActor.setAge(player.age);
             dashPipsActor.setDashPips(player.dashPips, player.maxDashPips);
@@ -67,6 +85,9 @@ public class CombatHUD {
         }
         if (poise != null) {
             healthMeterActor.setPoise(poise.currentPoise, poise.maxPoise);
+        }
+        if (crosshairActor != null) {
+            crosshairActor.updateStatus(combat, nearChest);
         }
         stage.act(dt);
     }
@@ -274,6 +295,122 @@ public class CombatHUD {
                     batch.draw(sockets[i], x + (i * 42), y, 38, 38);
                 }
             }
+        }
+    }
+
+    /**
+     * Precision Gothic Combat Reticle with dynamic mouse tracking, primary attack recovery arc,
+     * RMB Heavy Attack charge indicator, and contextual Chrono-Chest interaction icon.
+     */
+    public static class CrosshairReticleActor extends Actor {
+        private final AtlasRegion notch;
+        private final AtlasRegion diamondReady;
+        private final AtlasRegion diamondEmpty;
+        private final AtlasRegion dot;
+        private final Vector2 mousePos = new Vector2();
+
+        private boolean attacking = false;
+        private float attackRatio = 1.0f;
+        private boolean heavyReady = true;
+        private float heavyCooldownRatio = 1.0f;
+        private boolean nearChest = false;
+
+        public CrosshairReticleActor(TextureAtlas atlas) {
+            this.notch = atlas.findRegion("meter_segment_notch");
+            this.diamondReady = atlas.findRegion("dash_pip_ready");
+            this.diamondEmpty = atlas.findRegion("dash_pip_empty");
+            this.dot = atlas.findRegion("meter_health_fill");
+        }
+
+        public void updateStatus(CombatStateComponent combat, boolean nearChest) {
+            this.nearChest = nearChest;
+            if (combat != null) {
+                this.heavyReady = combat.canHeavyAttack();
+                if (combat.heavyAttackCooldownTimer > 0f) {
+                    this.heavyCooldownRatio = 1.0f - (combat.heavyAttackCooldownTimer / CombatStateComponent.HEAVY_ATTACK_COOLDOWN);
+                } else {
+                    this.heavyCooldownRatio = 1.0f;
+                }
+                this.attacking = (combat.state == CombatStateComponent.State.ATTACKING || combat.state == CombatStateComponent.State.HEAVY_ATTACKING);
+                if (combat.state == CombatStateComponent.State.ATTACKING) {
+                    float totalDur = (combat.comboStep == 3) ? 0.625f : (combat.comboStep == 2 ? 0.42f : 0.38f);
+                    this.attackRatio = Math.min(1.0f, combat.stateTimer / totalDur);
+                } else if (combat.state == CombatStateComponent.State.HEAVY_ATTACKING) {
+                    this.attackRatio = Math.min(1.0f, combat.stateTimer / 0.675f);
+                } else {
+                    this.attackRatio = 1.0f;
+                }
+            } else {
+                this.heavyReady = true;
+                this.heavyCooldownRatio = 1.0f;
+                this.attacking = false;
+                this.attackRatio = 1.0f;
+            }
+        }
+
+        @Override
+        public void draw(Batch batch, float parentAlpha) {
+            if (getStage() == null) return;
+            mousePos.set(Gdx.input.getX(), Gdx.input.getY());
+            getStage().screenToStageCoordinates(mousePos);
+
+            float mx = mousePos.x;
+            float my = mousePos.y;
+
+            // Reticle center dot
+            if (dot != null) {
+                batch.setColor(1.0f, 0.85f, 0.4f, 0.9f);
+                batch.draw(dot, mx - 1.5f, my - 1.5f, 3f, 3f);
+            }
+
+            // 4 directional brackets around reticle (radius ~12px)
+            if (notch != null) {
+                // When recovering from attack, brackets tint darker bronze, when ready bright amber
+                if (attacking && attackRatio < 1.0f) {
+                    batch.setColor(0.6f, 0.45f, 0.25f, 0.75f);
+                } else {
+                    batch.setColor(0.95f, 0.75f, 0.30f, 0.95f);
+                }
+
+                float r = attacking ? (10f + (1.0f - attackRatio) * 6f) : 12f;
+                // Top tick
+                batch.draw(notch, mx - 1f, my + r, 2f, 6f);
+                // Bottom tick
+                batch.draw(notch, mx - 1f, my - r - 6f, 2f, 6f);
+                // Left tick (rotated 90)
+                batch.draw(notch, mx - r - 6f, my - 1f, 0f, 0f, 2f, 6f, 1f, 1f, 90f);
+                // Right tick (rotated 90)
+                batch.draw(notch, mx + r, my - 1f, 0f, 0f, 2f, 6f, 1f, 1f, 90f);
+            }
+
+            // Heavy Attack (RMB) Ready Pip on right flank of crosshair
+            if (heavyReady) {
+                if (diamondReady != null) {
+                    batch.setColor(1.0f, 0.75f, 0.2f, 1.0f);
+                    batch.draw(diamondReady, mx + 18f, my - 6f, 12f, 12f);
+                }
+            } else {
+                if (diamondEmpty != null) {
+                    batch.setColor(0.6f, 0.6f, 0.7f, 0.6f);
+                    batch.draw(diamondEmpty, mx + 18f, my - 5f, 10f, 10f);
+                }
+                // Cooldown charge indicator
+                if (dot != null && heavyCooldownRatio > 0.05f) {
+                    batch.setColor(0.3f, 0.8f, 1.0f, 0.85f);
+                    batch.draw(dot, mx + 19f, my - 7f, 8f * heavyCooldownRatio, 2f);
+                }
+            }
+
+            // Contextual Chrono-Chest interaction indicator: [E] OPEN
+            if (nearChest) {
+                if (diamondReady != null) {
+                    float bob = (float) Math.sin(Gdx.graphics.getFrameId() * 0.15f) * 3f;
+                    batch.setColor(0.3f, 0.95f, 0.85f, 1.0f);
+                    batch.draw(diamondReady, mx - 7f, my + 20f + bob, 14f, 14f);
+                }
+            }
+
+            batch.setColor(Color.WHITE);
         }
     }
 }

@@ -37,6 +37,22 @@ public class DungeonLevel extends ArenaBuilder {
     private AtlasRegion propChest;
     private AtlasRegion propChainSpool;
 
+    public static class ChronoChestItem {
+        public float worldX;
+        public float worldY;
+        public boolean opened;
+        public TileRenderItem tileItem;
+
+        public ChronoChestItem(float worldX, float worldY, TileRenderItem tileItem) {
+            this.worldX = worldX;
+            this.worldY = worldY;
+            this.opened = false;
+            this.tileItem = tileItem;
+        }
+    }
+
+    public final Array<ChronoChestItem> chronoChests = new Array<>();
+
     public DungeonLevel() {
         super();
     }
@@ -49,6 +65,7 @@ public class DungeonLevel extends ArenaBuilder {
 
         getFloorTiles().clear();
         getWallAndPillarTiles().clear();
+        chronoChests.clear();
         moltenVentPositions.clear();
         furnaceVentPositions.clear();
 
@@ -220,6 +237,8 @@ public class DungeonLevel extends ArenaBuilder {
                     case PROP_CHRONO_CHEST -> {
                         getFloorTiles().add(new TileRenderItem(gx, gy, 0f, 0f, floorBasalt1, false, 32f, 16f));
                         createWallTile(room, wallBodyDef, propFixDef, gx, gy, propChest, 32f, 16f, 0.35f);
+                        TileRenderItem chestRenderItem = getWallAndPillarTiles().peek();
+                        chronoChests.add(new ChronoChestItem(gx + 0.5f, gy + 0.5f, chestRenderItem));
                     }
                     case PROP_CHAIN_SPOOL -> {
                         getFloorTiles().add(new TileRenderItem(gx, gy, 0f, 0f, floorBasalt1, false, 32f, 16f));

@@ -40,6 +40,8 @@ public class CombatStateComponent implements Component, Poolable {
     public float wallSplatTimer = 0f;
     public float dashTimer = 0f;
     public float iFrameTimer = 0f;
+    public float heavyAttackCooldownTimer = 0f;
+    public static final float HEAVY_ATTACK_COOLDOWN = 1.25f;
 
     // Knockback
     public boolean inKnockback = false;
@@ -67,7 +69,7 @@ public class CombatStateComponent implements Component, Poolable {
     }
 
     public boolean canHeavyAttack() {
-        return state == State.IDLE || state == State.SPRINT || (state == State.ATTACKING && comboWindowOpen);
+        return heavyAttackCooldownTimer <= 0f && (state == State.IDLE || state == State.SPRINT || (state == State.ATTACKING && comboWindowOpen));
     }
 
     public boolean canDeflect() {
@@ -93,6 +95,7 @@ public class CombatStateComponent implements Component, Poolable {
         wallSplatTimer = 0f;
         dashTimer = 0f;
         iFrameTimer = 0f;
+        heavyAttackCooldownTimer = 0f;
         inKnockback = false;
         knockbackVelocity.setZero();
     }

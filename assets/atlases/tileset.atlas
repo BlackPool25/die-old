@@ -1,6 +1,6 @@
 
 tileset.png
-size: 1024, 128
+size: 1024, 256
 format: RGBA8888
 filter: Nearest, Nearest
 repeat: none
@@ -140,6 +140,90 @@ wall_furnace_vent
 wall_furnace_vent_n
   rotate: false
   xy: 595, 35
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+floor_magma_fissure
+  rotate: false
+  xy: 1, 130
+  size: 64, 32
+  orig: 64, 32
+  offset: 0, 0
+  index: -1
+floor_magma_fissure_n
+  rotate: false
+  xy: 67, 130
+  size: 64, 32
+  orig: 64, 32
+  offset: 0, 0
+  index: -1
+floor_iron_grate
+  rotate: false
+  xy: 133, 130
+  size: 64, 32
+  orig: 64, 32
+  offset: 0, 0
+  index: -1
+floor_iron_grate_n
+  rotate: false
+  xy: 199, 130
+  size: 64, 32
+  orig: 64, 32
+  offset: 0, 0
+  index: -1
+prop_forge_anvil
+  rotate: false
+  xy: 265, 130
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+prop_forge_anvil_n
+  rotate: false
+  xy: 331, 130
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+prop_slag_cauldron
+  rotate: false
+  xy: 397, 130
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+prop_slag_cauldron_n
+  rotate: false
+  xy: 463, 130
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+prop_chrono_chest
+  rotate: false
+  xy: 529, 130
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+prop_chrono_chest_n
+  rotate: false
+  xy: 595, 130
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+prop_chain_spool
+  rotate: false
+  xy: 661, 130
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+prop_chain_spool_n
+  rotate: false
+  xy: 727, 130
   size: 64, 64
   orig: 64, 64
   offset: 0, 0

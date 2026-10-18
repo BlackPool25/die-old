@@ -104,4 +104,97 @@ public class DungeonLevelTest {
         atlas.dispose();
         world.dispose();
     }
+
+    @Test
+    @DisplayName("Verify Obsidian Foundry thematic props, micro-architecture, and foreground wall orientation")
+    public void testFoundryThematicPropsAndWallOrientation() {
+        RoomPrefabRegistry registry = new RoomPrefabRegistry();
+        Array<RoomTemplate> templates = registry.getAllTemplates();
+        assertEquals(9, templates.size, "Expected 9 distinct handcrafted Biome 1 templates");
+
+        boolean hasAnvil = false;
+        boolean hasCauldron = false;
+        boolean hasChest = false;
+        boolean hasChainSpool = false;
+        boolean hasMagmaFissure = false;
+        boolean hasIronGrate = false;
+
+        for (int r = 0; r < templates.size; r++) {
+            RoomTemplate t = templates.get(r);
+            int w = t.width;
+            int h = t.height;
+
+            // 1. Verify North Wall (y = h - 1) has tall walls (WALL_CAST_IRON_NW or WALL_FURNACE_VENT)
+            for (int x = 0; x < w - 1; x++) {
+                TileType tile = t.getTile(x, h - 1);
+                // Can be a socket doorway or tall wall
+                boolean isDoorway = false;
+                for (int s = 0; s < t.sockets.size; s++) {
+                    Socket sock = t.sockets.get(s);
+                    if (sock.direction == Direction.NORTH && x >= sock.x && x < sock.x + sock.clearanceWidth && h - 1 == sock.y) {
+                        isDoorway = true;
+                        break;
+                    }
+                }
+                if (!isDoorway) {
+                    assertTrue(tile == TileType.WALL_CAST_IRON_NW || tile == TileType.WALL_FURNACE_VENT,
+                        "North wall at (" + x + "," + (h-1) + ") in " + t.id + " must be tall back wall, got " + tile);
+                }
+            }
+
+            // 2. Verify South Boundary (y = 0) has BOUNDARY_LOW_CURB (NO tall walls)
+            for (int x = 0; x < w; x++) {
+                TileType tile = t.getTile(x, 0);
+                boolean isDoorway = false;
+                for (int s = 0; s < t.sockets.size; s++) {
+                    Socket sock = t.sockets.get(s);
+                    if (sock.direction == Direction.SOUTH && x >= sock.x && x < sock.x + sock.clearanceWidth && 0 == sock.y) {
+                        isDoorway = true;
+                        break;
+                    }
+                }
+                if (!isDoorway) {
+                    assertEquals(TileType.BOUNDARY_LOW_CURB, tile,
+                        "South boundary at (" + x + ",0) in " + t.id + " must be BOUNDARY_LOW_CURB, got " + tile);
+                }
+            }
+
+            // 3. Verify West Boundary (x = 0) has BOUNDARY_LOW_CURB (NO tall walls)
+            for (int y = 0; y < h - 1; y++) {
+                TileType tile = t.getTile(0, y);
+                boolean isDoorway = false;
+                for (int s = 0; s < t.sockets.size; s++) {
+                    Socket sock = t.sockets.get(s);
+                    if (sock.direction == Direction.WEST && y >= sock.y && y < sock.y + sock.clearanceWidth && 0 == sock.x) {
+                        isDoorway = true;
+                        break;
+                    }
+                }
+                if (!isDoorway) {
+                    assertEquals(TileType.BOUNDARY_LOW_CURB, tile,
+                        "West boundary at (0," + y + ") in " + t.id + " must be BOUNDARY_LOW_CURB, got " + tile);
+                }
+            }
+
+            // Check presence of props & floor variants
+            for (int x = 0; x < w; x++) {
+                for (int y = 0; y < h; y++) {
+                    TileType tile = t.getTile(x, y);
+                    if (tile == TileType.PROP_FORGE_ANVIL) hasAnvil = true;
+                    if (tile == TileType.PROP_SLAG_CAULDRON) hasCauldron = true;
+                    if (tile == TileType.PROP_CHRONO_CHEST) hasChest = true;
+                    if (tile == TileType.PROP_CHAIN_SPOOL) hasChainSpool = true;
+                    if (tile == TileType.FLOOR_MAGMA_FISSURE) hasMagmaFissure = true;
+                    if (tile == TileType.FLOOR_IRON_GRATE) hasIronGrate = true;
+                }
+            }
+        }
+
+        assertTrue(hasAnvil, "Obsidian Foundry prefabs must include PROP_FORGE_ANVIL tactical cover");
+        assertTrue(hasCauldron, "Obsidian Foundry prefabs must include PROP_SLAG_CAULDRON hazard cover");
+        assertTrue(hasChest, "Obsidian Foundry prefabs must include PROP_CHRONO_CHEST reward caches");
+        assertTrue(hasChainSpool, "Obsidian Foundry prefabs must include PROP_CHAIN_SPOOL logistics winches");
+        assertTrue(hasMagmaFissure, "Obsidian Foundry prefabs must include FLOOR_MAGMA_FISSURE cracked floor hazards");
+        assertTrue(hasIronGrate, "Obsidian Foundry prefabs must include FLOOR_IRON_GRATE catwalk walkways");
+    }
 }

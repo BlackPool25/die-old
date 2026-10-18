@@ -671,6 +671,13 @@ def main():
         f.write(tsx_content)
     print(f"Tiled TSX definition with Box2D collision metadata saved to {tsx_path}")
 
+    # Generate props and pack atlas
+    import generate_foundry_props
+    import pack_tileset_atlas
+    generate_foundry_props.main()
+    pack_tileset_atlas.main()
+
 
 if __name__ == "__main__":
     main()
+

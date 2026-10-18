@@ -113,6 +113,12 @@ public class AssetAndRenderPipelineTest {
         assertNotNull(atlas.findRegion("wall_corner_outer"), "Missing wall_corner_outer");
         assertNotNull(atlas.findRegion("wall_furnace_vent"), "Missing wall_furnace_vent");
         assertNotNull(atlas.findRegion("pillar_basalt_column"), "Missing pillar_basalt_column");
+        assertNotNull(atlas.findRegion("floor_magma_fissure"), "Missing floor_magma_fissure");
+        assertNotNull(atlas.findRegion("floor_iron_grate"), "Missing floor_iron_grate");
+        assertNotNull(atlas.findRegion("prop_forge_anvil"), "Missing prop_forge_anvil");
+        assertNotNull(atlas.findRegion("prop_slag_cauldron"), "Missing prop_slag_cauldron");
+        assertNotNull(atlas.findRegion("prop_chrono_chest"), "Missing prop_chrono_chest");
+        assertNotNull(atlas.findRegion("prop_chain_spool"), "Missing prop_chain_spool");
 
         atlas.dispose();
     }

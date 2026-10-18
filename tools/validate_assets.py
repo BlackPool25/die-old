@@ -97,8 +97,7 @@ def test_texel_density():
         print_fail(f"{invalid_floor_count} floor tiles have non-standard dimensions!")
         passed = False
 
-    # 3. Wall Tiles: 64x64 and 64x96 pixels
-    wall_tiles = [f for f in tile_files if "wall" in os.path.basename(f) or "pillar" in os.path.basename(f)]
+    wall_tiles = [f for f in tile_files if any(k in os.path.basename(f) for k in ("wall", "pillar", "prop"))]
     invalid_wall_count = 0
     for f in wall_tiles:
         with Image.open(f) as img:

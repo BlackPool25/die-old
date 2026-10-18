@@ -25,11 +25,17 @@ public class DungeonLevel extends ArenaBuilder {
     private AtlasRegion floorBorder;
     private AtlasRegion floorVent;
     private AtlasRegion floorRune;
+    private AtlasRegion floorMagmaFissure;
+    private AtlasRegion floorIronGrate;
     private AtlasRegion wallNW;
     private AtlasRegion wallNE;
     private AtlasRegion wallCorner;
     private AtlasRegion wallFurnace;
     private AtlasRegion pillarBasalt;
+    private AtlasRegion propAnvil;
+    private AtlasRegion propCauldron;
+    private AtlasRegion propChest;
+    private AtlasRegion propChainSpool;
 
     public DungeonLevel() {
         super();
@@ -55,12 +61,25 @@ public class DungeonLevel extends ArenaBuilder {
         floorBorder = atlas.findRegion("floor_obsidian_border");
         floorVent = atlas.findRegion("floor_molten_heat_vent");
         floorRune = atlas.findRegion("floor_rune_circle");
+        floorMagmaFissure = atlas.findRegion("floor_magma_fissure");
+        if (floorMagmaFissure == null) floorMagmaFissure = floorVent;
+        floorIronGrate = atlas.findRegion("floor_iron_grate");
+        if (floorIronGrate == null) floorIronGrate = floorBorder;
 
         wallNW = atlas.findRegion("wall_cast_iron_nw");
         wallNE = atlas.findRegion("wall_cast_iron_ne");
         wallCorner = atlas.findRegion("wall_corner_outer");
         wallFurnace = atlas.findRegion("wall_furnace_vent");
         pillarBasalt = atlas.findRegion("pillar_basalt_column");
+
+        propAnvil = atlas.findRegion("prop_forge_anvil");
+        if (propAnvil == null) propAnvil = pillarBasalt;
+        propCauldron = atlas.findRegion("prop_slag_cauldron");
+        if (propCauldron == null) propCauldron = pillarBasalt;
+        propChest = atlas.findRegion("prop_chrono_chest");
+        if (propChest == null) propChest = pillarBasalt;
+        propChainSpool = atlas.findRegion("prop_chain_spool");
+        if (propChainSpool == null) propChainSpool = pillarBasalt;
 
         // 2. Box2D Shared Physics Definitions
         BodyDef wallBodyDef = new BodyDef();
@@ -86,20 +105,32 @@ public class DungeonLevel extends ArenaBuilder {
         pillarFixDef.filter.categoryBits = PhysicsConstants.CATEGORY_WALL;
         pillarFixDef.filter.maskBits = PhysicsConstants.MASK_WALL;
 
+        CircleShape propShape = new CircleShape();
+        propShape.setRadius(0.42f);
+
+        FixtureDef propFixDef = new FixtureDef();
+        propFixDef.shape = propShape;
+        propFixDef.friction = 0.5f;
+        propFixDef.restitution = 0.15f;
+        propFixDef.filter.categoryBits = PhysicsConstants.CATEGORY_WALL;
+        propFixDef.filter.maskBits = PhysicsConstants.MASK_WALL;
+
         // 3. Stitch Each Placed Room
         for (int r = 0; r < rooms.size; r++) {
             PlacedRoom room = rooms.get(r);
-            stitchRoom(room, wallBodyDef, wallFixDef, pillarShape, pillarFixDef);
+            stitchRoom(room, wallBodyDef, wallFixDef, pillarShape, pillarFixDef, propFixDef);
         }
 
         diamondBox.dispose();
         pillarShape.dispose();
+        propShape.dispose();
     }
 
     private void stitchRoom(
         PlacedRoom room,
         BodyDef wallBodyDef, FixtureDef wallFixDef,
-        CircleShape pillarShape, FixtureDef pillarFixDef
+        CircleShape pillarShape, FixtureDef pillarFixDef,
+        FixtureDef propFixDef
     ) {
         RoomTemplate t = room.template;
         int rx = room.gridX;
@@ -118,10 +149,14 @@ public class DungeonLevel extends ArenaBuilder {
 
                 if (socketAtCell != null) {
                     if (socketAtCell.isCapped) {
-                        // Capped Socket: Place solid wall and Box2D impact collider
-                        AtlasRegion reg = (socketAtCell.socket.direction == Direction.NORTH || socketAtCell.socket.direction == Direction.SOUTH)
-                            ? wallNW : wallNE;
-                        createWallTile(room, wallBodyDef, wallFixDef, gx, gy, reg, 32f, 16f, 0.4f);
+                        // Capped Socket: Place solid wall on North/East, low curb on South/West
+                        if (socketAtCell.socket.direction == Direction.NORTH || socketAtCell.socket.direction == Direction.EAST) {
+                            AtlasRegion reg = (socketAtCell.socket.direction == Direction.NORTH) ? wallNW : wallNE;
+                            createWallTile(room, wallBodyDef, wallFixDef, gx, gy, reg, 32f, 16f, 0.4f);
+                        } else {
+                            getFloorTiles().add(new TileRenderItem(gx, gy, 0f, 0f, floorBorder != null ? floorBorder : floorBasalt1, false, 32f, 16f));
+                            createBoundaryCollider(room, wallBodyDef, wallFixDef, gx, gy);
+                        }
                         continue;
                     } else {
                         // Open Connected Socket: Place seamless open floor tile
@@ -140,9 +175,19 @@ public class DungeonLevel extends ArenaBuilder {
                         getFloorTiles().add(new TileRenderItem(gx, gy, 0f, 0f, floorBorder != null ? floorBorder : floorBasalt1, false, 32f, 16f));
                     case FLOOR_RUNE_CIRCLE ->
                         getFloorTiles().add(new TileRenderItem(gx, gy, 0f, 0f, floorRune != null ? floorRune : floorBasalt1, false, 32f, 16f));
+                    case FLOOR_MAGMA_FISSURE -> {
+                        getFloorTiles().add(new TileRenderItem(gx, gy, 0f, 0f, floorMagmaFissure, false, 32f, 16f));
+                        moltenVentPositions.add(new Vector2(gx + 0.5f, gy + 0.5f));
+                    }
+                    case FLOOR_IRON_GRATE ->
+                        getFloorTiles().add(new TileRenderItem(gx, gy, 0f, 0f, floorIronGrate, false, 32f, 16f));
                     case FLOOR_MOLTEN_VENT -> {
                         getFloorTiles().add(new TileRenderItem(gx, gy, 0f, 0f, floorVent != null ? floorVent : floorBasalt1, false, 32f, 16f));
                         moltenVentPositions.add(new Vector2(gx + 0.5f, gy + 0.5f));
+                    }
+                    case BOUNDARY_LOW_CURB -> {
+                        getFloorTiles().add(new TileRenderItem(gx, gy, 0f, 0f, floorBorder != null ? floorBorder : floorBasalt1, false, 32f, 16f));
+                        createBoundaryCollider(room, wallBodyDef, wallFixDef, gx, gy);
                     }
                     case WALL_CAST_IRON_NW ->
                         createWallTile(room, wallBodyDef, wallFixDef, gx, gy, wallNW, 32f, 16f, 0.4f);
@@ -155,22 +200,43 @@ public class DungeonLevel extends ArenaBuilder {
                         furnaceVentPositions.add(new Vector2(gx + 0.5f, gy + 0.5f));
                     }
                     case PILLAR_BASALT -> {
-                        // Floor under pillar
                         getFloorTiles().add(new TileRenderItem(gx, gy, 0f, 0f, floorBasalt1, false, 32f, 16f));
-
-                        // Circular Box2D collider & tall pillar sprite
                         wallBodyDef.position.set(gx + 0.5f, gy + 0.5f);
                         Body pBody = box2DWorld.createBody(wallBodyDef);
                         pBody.createFixture(pillarFixDef);
                         pBody.setUserData("WALL");
                         room.wallBodies.add(pBody);
-
                         getWallAndPillarTiles().add(new TileRenderItem(gx + 0.5f, gy + 0.5f, 0f, 0.45f, pillarBasalt, true, 32f, 12f));
+                    }
+                    case PROP_FORGE_ANVIL -> {
+                        getFloorTiles().add(new TileRenderItem(gx, gy, 0f, 0f, floorBasalt1, false, 32f, 16f));
+                        createWallTile(room, wallBodyDef, propFixDef, gx, gy, propAnvil, 32f, 16f, 0.35f);
+                    }
+                    case PROP_SLAG_CAULDRON -> {
+                        getFloorTiles().add(new TileRenderItem(gx, gy, 0f, 0f, floorBasalt1, false, 32f, 16f));
+                        createWallTile(room, wallBodyDef, propFixDef, gx, gy, propCauldron, 32f, 16f, 0.35f);
+                        moltenVentPositions.add(new Vector2(gx + 0.5f, gy + 0.5f));
+                    }
+                    case PROP_CHRONO_CHEST -> {
+                        getFloorTiles().add(new TileRenderItem(gx, gy, 0f, 0f, floorBasalt1, false, 32f, 16f));
+                        createWallTile(room, wallBodyDef, propFixDef, gx, gy, propChest, 32f, 16f, 0.35f);
+                    }
+                    case PROP_CHAIN_SPOOL -> {
+                        getFloorTiles().add(new TileRenderItem(gx, gy, 0f, 0f, floorBasalt1, false, 32f, 16f));
+                        createWallTile(room, wallBodyDef, propFixDef, gx, gy, propChainSpool, 32f, 16f, 0.35f);
                     }
                     default -> {}
                 }
             }
         }
+    }
+
+    private void createBoundaryCollider(PlacedRoom room, BodyDef bodyDef, FixtureDef fixDef, float x, float y) {
+        bodyDef.position.set(x + 0.5f, y + 0.5f);
+        Body body = box2DWorld.createBody(bodyDef);
+        body.createFixture(fixDef);
+        body.setUserData("WALL");
+        room.wallBodies.add(body);
     }
 
     private void createWallTile(

@@ -50,7 +50,7 @@ public class RoomPrefabRegistry {
     }
 
     /**
-     * 1. IngressHub: Safe spawn chamber with central Chrono-Rune circle (16x16).
+     * 1. IngressHub: Safe spawn chamber with central Chrono-Rune circle and iron catwalks (16x16).
      */
     public RoomTemplate createIngressHub() {
         RoomTemplate t = new RoomTemplate("IngressHub", 16, 16, false);
@@ -61,18 +61,43 @@ public class RoomPrefabRegistry {
 
         buildBaseRoom(t);
 
-        // Central Chrono-Rune Circle (7,7 to 8,8)
+        // Central Chrono-Rune Dais (7,7 to 8,8)
         for (int x = 7; x <= 8; x++) {
             for (int y = 7; y <= 8; y++) {
                 t.setTile(x, y, TileType.FLOOR_RUNE_CIRCLE);
             }
         }
+
+        // Cross-axial Cast-Iron Grate catwalks leading to the 4 portals
+        for (int y = 1; y <= 6; y++) {
+            t.setTile(7, y, TileType.FLOOR_IRON_GRATE);
+            t.setTile(8, y, TileType.FLOOR_IRON_GRATE);
+        }
+        for (int y = 9; y <= 14; y++) {
+            t.setTile(7, y, TileType.FLOOR_IRON_GRATE);
+            t.setTile(8, y, TileType.FLOOR_IRON_GRATE);
+        }
+        for (int x = 1; x <= 6; x++) {
+            t.setTile(x, 7, TileType.FLOOR_IRON_GRATE);
+            t.setTile(x, 8, TileType.FLOOR_IRON_GRATE);
+        }
+        for (int x = 9; x <= 14; x++) {
+            t.setTile(x, 7, TileType.FLOOR_IRON_GRATE);
+            t.setTile(x, 8, TileType.FLOOR_IRON_GRATE);
+        }
+
+        // Corner Foundry Logistics Props
+        t.setTile(3, 12, TileType.PROP_CHAIN_SPOOL);
+        t.setTile(12, 12, TileType.PROP_FORGE_ANVIL);
+        t.setTile(3, 3, TileType.PROP_CHRONO_CHEST);
+        t.setTile(12, 3, TileType.PROP_CHAIN_SPOOL);
+
         t.addPlayerSpawn(8.0f, 8.0f);
         return t;
     }
 
     /**
-     * 2. CombatArenaSmall: 14x14 close-quarters encounter room.
+     * 2. CombatArenaSmall: 14x14 close-quarters encounter room with tactical anvils and magma fissures.
      */
     public RoomTemplate createCombatArenaSmall() {
         RoomTemplate t = new RoomTemplate("CombatArenaSmall", 14, 14, true);
@@ -83,21 +108,32 @@ public class RoomPrefabRegistry {
 
         buildBaseRoom(t);
 
-        // Molten heat hazards
+        // Molten magma fissure & heat vents
+        t.setTile(3, 9, TileType.FLOOR_MAGMA_FISSURE);
         t.setTile(4, 9, TileType.FLOOR_MOLTEN_VENT);
         t.setTile(9, 4, TileType.FLOOR_MOLTEN_VENT);
+        t.setTile(10, 4, TileType.FLOOR_MAGMA_FISSURE);
+        t.addHazard(3.5f, 9.5f);
         t.addHazard(4.5f, 9.5f);
         t.addHazard(9.5f, 4.5f);
+        t.addHazard(10.5f, 4.5f);
+
+        // Tactical Master Anvils (Wall-slam & cover)
+        t.setTile(4, 4, TileType.PROP_FORGE_ANVIL);
+        t.setTile(9, 9, TileType.PROP_FORGE_ANVIL);
+
+        // Slag Crucible
+        t.setTile(9, 5, TileType.PROP_SLAG_CAULDRON);
 
         // Enemy Hound spawns
-        t.addEnemySpawn(4.5f, 4.5f);
-        t.addEnemySpawn(9.5f, 9.5f);
+        t.addEnemySpawn(3.5f, 6.5f);
+        t.addEnemySpawn(10.5f, 6.5f);
 
         return t;
     }
 
     /**
-     * 3. CombatArenaMedium: 20x20 tactical arena with 4 basalt pillars and molten vents.
+     * 3. CombatArenaMedium: 20x20 tactical arena with 4 basalt pillars, central forge platform, and slag cauldrons.
      */
     public RoomTemplate createCombatArenaMedium() {
         RoomTemplate t = new RoomTemplate("CombatArenaMedium", 20, 20, true);
@@ -108,7 +144,7 @@ public class RoomPrefabRegistry {
 
         buildBaseRoom(t);
 
-        // 4 Basalt Columns
+        // 4 Monolithic Basalt Columns
         int[] pillars = {5, 5, 5, 14, 14, 5, 14, 14};
         for (int i = 0; i < pillars.length; i += 2) {
             int px = pillars[i];
@@ -117,8 +153,29 @@ public class RoomPrefabRegistry {
             t.addPillar(px + 0.5f, py + 0.5f);
         }
 
-        // Molten heat hazards
-        int[] vents = {7, 9, 12, 9, 9, 7, 9, 12};
+        // Central Smelting Platform (9,9 to 10,10)
+        t.setTile(9, 9, TileType.PROP_FORGE_ANVIL);
+        t.setTile(10, 10, TileType.PROP_SLAG_CAULDRON);
+        t.setTile(9, 10, TileType.FLOOR_IRON_GRATE);
+        t.setTile(10, 9, TileType.FLOOR_IRON_GRATE);
+
+        // Flanking Magma Fissures
+        int[] fissures = {9, 6, 10, 6, 9, 13, 10, 13};
+        for (int i = 0; i < fissures.length; i += 2) {
+            int fx = fissures[i];
+            int fy = fissures[i + 1];
+            t.setTile(fx, fy, TileType.FLOOR_MAGMA_FISSURE);
+            t.addHazard(fx + 0.5f, fy + 0.5f);
+        }
+
+        // Wall Alcove Chain Hoists & Tactical Anvils
+        t.setTile(2, 10, TileType.PROP_CHAIN_SPOOL);
+        t.setTile(17, 10, TileType.PROP_CHAIN_SPOOL);
+        t.setTile(5, 9, TileType.PROP_FORGE_ANVIL);
+        t.setTile(14, 10, TileType.PROP_FORGE_ANVIL);
+
+        // Molten heat hazard vents
+        int[] vents = {7, 9, 12, 9};
         for (int i = 0; i < vents.length; i += 2) {
             int vx = vents[i];
             int vy = vents[i + 1];
@@ -127,15 +184,15 @@ public class RoomPrefabRegistry {
         }
 
         // Enemy spawns
-        t.addEnemySpawn(5.5f, 10.0f);
-        t.addEnemySpawn(14.5f, 10.0f);
-        t.addEnemySpawn(10.0f, 14.5f);
+        t.addEnemySpawn(6.5f, 6.5f);
+        t.addEnemySpawn(13.5f, 6.5f);
+        t.addEnemySpawn(10.0f, 15.0f);
 
         return t;
     }
 
     /**
-     * 4. HazardConduitVertical: 10x20 elongated corridor lined with molten slag vents.
+     * 4. HazardConduitVertical: 10x20 elongated corridor with suspended iron catwalk over molten fissures.
      */
     public RoomTemplate createHazardConduitVertical() {
         RoomTemplate t = new RoomTemplate("HazardConduitVertical", 10, 20, false);
@@ -144,18 +201,34 @@ public class RoomPrefabRegistry {
 
         buildBaseRoom(t);
 
-        // Linear hazard sequence with safe stepping tiles
-        int[] hazardY = {4, 7, 10, 13, 16};
-        for (int hy : hazardY) {
-            t.setTile(4, hy, TileType.FLOOR_MOLTEN_VENT);
-            t.addHazard(4.5f, hy + 0.5f);
+        // Central suspended iron grate catwalk (x=4..5, y=1..18)
+        for (int y = 1; y <= 18; y++) {
+            t.setTile(4, y, TileType.FLOOR_IRON_GRATE);
+            t.setTile(5, y, TileType.FLOOR_IRON_GRATE);
         }
+
+        // Flanking molten slag fissures and vents
+        int[] hazardY = {4, 8, 12, 16};
+        for (int hy : hazardY) {
+            t.setTile(2, hy, TileType.FLOOR_MAGMA_FISSURE);
+            t.setTile(3, hy, TileType.FLOOR_MOLTEN_VENT);
+            t.setTile(6, hy, TileType.FLOOR_MOLTEN_VENT);
+            t.setTile(7, hy, TileType.FLOOR_MAGMA_FISSURE);
+            t.addHazard(2.5f, hy + 0.5f);
+            t.addHazard(3.5f, hy + 0.5f);
+            t.addHazard(6.5f, hy + 0.5f);
+            t.addHazard(7.5f, hy + 0.5f);
+        }
+
+        // Wall hoist winch drums
+        t.setTile(2, 10, TileType.PROP_CHAIN_SPOOL);
+        t.setTile(7, 10, TileType.PROP_CHAIN_SPOOL);
 
         return t;
     }
 
     /**
-     * 5. HazardConduitHorizontal: 20x10 elongated corridor lined with molten slag vents.
+     * 5. HazardConduitHorizontal: 20x10 elongated corridor with suspended iron catwalk over molten fissures.
      */
     public RoomTemplate createHazardConduitHorizontal() {
         RoomTemplate t = new RoomTemplate("HazardConduitHorizontal", 20, 10, false);
@@ -164,18 +237,34 @@ public class RoomPrefabRegistry {
 
         buildBaseRoom(t);
 
-        // Linear hazard sequence with safe stepping tiles
-        int[] hazardX = {4, 7, 10, 13, 16};
-        for (int hx : hazardX) {
-            t.setTile(hx, 4, TileType.FLOOR_MOLTEN_VENT);
-            t.addHazard(hx + 0.5f, 4.5f);
+        // Central suspended iron grate catwalk (y=4..5, x=1..18)
+        for (int x = 1; x <= 18; x++) {
+            t.setTile(x, 4, TileType.FLOOR_IRON_GRATE);
+            t.setTile(x, 5, TileType.FLOOR_IRON_GRATE);
         }
+
+        // Flanking molten slag fissures and vents
+        int[] hazardX = {4, 8, 12, 16};
+        for (int hx : hazardX) {
+            t.setTile(hx, 2, TileType.FLOOR_MAGMA_FISSURE);
+            t.setTile(hx, 3, TileType.FLOOR_MOLTEN_VENT);
+            t.setTile(hx, 6, TileType.FLOOR_MOLTEN_VENT);
+            t.setTile(hx, 7, TileType.FLOOR_MAGMA_FISSURE);
+            t.addHazard(hx + 0.5f, 2.5f);
+            t.addHazard(hx + 0.5f, 3.5f);
+            t.addHazard(hx + 0.5f, 6.5f);
+            t.addHazard(hx + 0.5f, 7.5f);
+        }
+
+        // Props in alcoves
+        t.setTile(10, 2, TileType.PROP_CHAIN_SPOOL);
+        t.setTile(10, 7, TileType.PROP_SLAG_CAULDRON);
 
         return t;
     }
 
     /**
-     * 6. PuzzleAlcove: 14x14 age-gated chamber with internal divider wall & ventilation crawlspace.
+     * 6. PuzzleAlcove: 14x14 age-gated chamber with ventilation crawlspace and Chrono-Chest cache.
      */
     public RoomTemplate createPuzzleAlcove() {
         RoomTemplate t = new RoomTemplate("PuzzleAlcove", 14, 14, false);
@@ -184,21 +273,28 @@ public class RoomPrefabRegistry {
 
         buildBaseRoom(t);
 
-        // Internal divider wall at y = 7, leaving 1-tile crawlspace at x = 6
-        for (int x = 1; x < 13; x++) {
-            if (x != 6) { // 1-tile crawlspace opening
-                t.setTile(x, 7, TileType.WALL_CAST_IRON_NW);
-            }
-        }
+        // Cast-iron divider partition with tactical anvil & wide crawlspace
+        t.setTile(3, 7, TileType.PROP_FORGE_ANVIL);
+        t.setTile(10, 7, TileType.PROP_FORGE_ANVIL);
+        t.setTile(2, 7, TileType.WALL_CAST_IRON_NW);
+        t.setTile(11, 7, TileType.WALL_CAST_IRON_NW);
 
-        // Secret alcove rune floor at (9, 10)
-        t.setTile(9, 10, TileType.FLOOR_RUNE_CIRCLE);
+        // Ventilation crawlspace catwalk
+        t.setTile(6, 7, TileType.FLOOR_IRON_GRATE);
+        t.setTile(7, 7, TileType.FLOOR_IRON_GRATE);
+
+        // Secret Chrono-Chest Cache on Runic Dais
+        t.setTile(6, 10, TileType.FLOOR_RUNE_CIRCLE);
+        t.setTile(7, 10, TileType.FLOOR_RUNE_CIRCLE);
+        t.setTile(6, 11, TileType.FLOOR_RUNE_CIRCLE);
+        t.setTile(7, 11, TileType.PROP_CHRONO_CHEST);
+        t.setTile(4, 11, TileType.PROP_CHAIN_SPOOL);
 
         return t;
     }
 
     /**
-     * 7. LockdownChamber: 16x16 enclosed arena with 2 portcullis combat gates.
+     * 7. LockdownChamber: 16x16 enclosed arena with 2 portcullis combat gates and slag braziers.
      */
     public RoomTemplate createLockdownChamber() {
         RoomTemplate t = new RoomTemplate("LockdownChamber", 16, 16, true);
@@ -207,11 +303,23 @@ public class RoomPrefabRegistry {
 
         buildBaseRoom(t);
 
-        // Molten vents flanking center
-        t.setTile(4, 8, TileType.FLOOR_MOLTEN_VENT);
-        t.setTile(11, 8, TileType.FLOOR_MOLTEN_VENT);
-        t.addHazard(4.5f, 8.5f);
-        t.addHazard(11.5f, 8.5f);
+        // Flanking Slag Cauldrons at combat arena thresholds
+        t.setTile(4, 8, TileType.PROP_SLAG_CAULDRON);
+        t.setTile(11, 8, TileType.PROP_SLAG_CAULDRON);
+
+        // Tactical cover anvils
+        t.setTile(8, 5, TileType.PROP_FORGE_ANVIL);
+        t.setTile(8, 10, TileType.PROP_FORGE_ANVIL);
+
+        // Magma fissures & vents
+        t.setTile(5, 5, TileType.FLOOR_MAGMA_FISSURE);
+        t.setTile(10, 10, TileType.FLOOR_MAGMA_FISSURE);
+        t.setTile(5, 10, TileType.FLOOR_MOLTEN_VENT);
+        t.setTile(10, 5, TileType.FLOOR_MOLTEN_VENT);
+        t.addHazard(5.5f, 5.5f);
+        t.addHazard(10.5f, 10.5f);
+        t.addHazard(5.5f, 10.5f);
+        t.addHazard(10.5f, 5.5f);
 
         // 3 Hound spawns
         t.addEnemySpawn(5.0f, 8.0f);
@@ -233,12 +341,27 @@ public class RoomPrefabRegistry {
 
         buildBaseRoom(t);
 
-        // Decorative Chrono-Rune floor at center (5,5 to 6,6)
+        // Central Sanctuary Chrono-Rune Dais (5,5 to 6,6)
         for (int x = 5; x <= 6; x++) {
             for (int y = 5; y <= 6; y++) {
                 t.setTile(x, y, TileType.FLOOR_RUNE_CIRCLE);
             }
         }
+
+        // Iron grate access runners
+        t.setTile(5, 1, TileType.FLOOR_IRON_GRATE);
+        t.setTile(6, 1, TileType.FLOOR_IRON_GRATE);
+        t.setTile(5, 10, TileType.FLOOR_IRON_GRATE);
+        t.setTile(6, 10, TileType.FLOOR_IRON_GRATE);
+        t.setTile(1, 5, TileType.FLOOR_IRON_GRATE);
+        t.setTile(1, 6, TileType.FLOOR_IRON_GRATE);
+        t.setTile(10, 5, TileType.FLOOR_IRON_GRATE);
+        t.setTile(10, 6, TileType.FLOOR_IRON_GRATE);
+
+        // Chrono Chest & Chain Spools
+        t.setTile(5, 9, TileType.PROP_CHRONO_CHEST);
+        t.setTile(2, 5, TileType.PROP_CHAIN_SPOOL);
+        t.setTile(9, 5, TileType.PROP_CHAIN_SPOOL);
 
         return t;
     }
@@ -253,6 +376,12 @@ public class RoomPrefabRegistry {
 
         buildBaseRoom(t);
 
+        // Central Processional Iron Grate Aisle leading to Boss Vault Door
+        for (int y = 1; y <= 16; y++) {
+            t.setTile(9, y, TileType.FLOOR_IRON_GRATE);
+            t.setTile(10, y, TileType.FLOOR_IRON_GRATE);
+        }
+
         // Processional Basalt Columns
         int[] pillars = {5, 5, 5, 12, 14, 5, 14, 12};
         for (int i = 0; i < pillars.length; i += 2) {
@@ -261,6 +390,14 @@ public class RoomPrefabRegistry {
             t.setTile(px, py, TileType.PILLAR_BASALT);
             t.addPillar(px + 0.5f, py + 0.5f);
         }
+
+        // Master Anvils flanking the central aisle
+        t.setTile(7, 8, TileType.PROP_FORGE_ANVIL);
+        t.setTile(12, 8, TileType.PROP_FORGE_ANVIL);
+
+        // Slag Cauldrons framing the Boss Vault Door
+        t.setTile(6, 15, TileType.PROP_SLAG_CAULDRON);
+        t.setTile(13, 15, TileType.PROP_SLAG_CAULDRON);
 
         // Enemy guardians
         t.addEnemySpawn(7.0f, 9.0f);
@@ -273,6 +410,9 @@ public class RoomPrefabRegistry {
     /**
      * Builds standard enclosed room perimeter walls and alternating basalt floor,
      * leaving open floor tiles at all declared socket doorway locations.
+     * North and East boundaries feature tall cast-iron fortress walls with furnace vents.
+     * South and West boundaries feature low border curbs with Box2D static impact colliders,
+     * preventing 2.5D visual occlusion into the room interior.
      */
     private void buildBaseRoom(RoomTemplate t) {
         int w = t.width;
@@ -289,35 +429,36 @@ public class RoomPrefabRegistry {
             }
         }
 
-        // 2. Build perimeter walls
-        // North Wall (y = h - 1)
+        // 2. Build Foreground Boundaries (South and West low curbs with Box2D colliders)
+        // South boundary (y = 0)
+        for (int x = 0; x < w; x++) {
+            t.setTile(x, 0, TileType.BOUNDARY_LOW_CURB);
+        }
+
+        // West boundary (x = 0, y from 1 to h - 2)
+        for (int y = 1; y < h - 1; y++) {
+            t.setTile(0, y, TileType.BOUNDARY_LOW_CURB);
+        }
+
+        // 3. Build Back Walls (North and East facing camera)
+        // North Wall (y = h - 1, x from 0 to w - 2)
         for (int x = 0; x < w - 1; x++) {
             boolean isFurnace = (x % 4 == 2);
             t.setTile(x, h - 1, isFurnace ? TileType.WALL_FURNACE_VENT : TileType.WALL_CAST_IRON_NW);
             if (isFurnace) t.addFurnace(x + 0.5f, h - 0.5f);
         }
 
-        // East Wall (x = w - 1)
-        for (int y = 0; y < h - 1; y++) {
+        // East Wall (x = w - 1, y from 1 to h - 2)
+        for (int y = 1; y < h - 1; y++) {
             boolean isFurnace = (y % 4 == 2);
             t.setTile(w - 1, y, isFurnace ? TileType.WALL_FURNACE_VENT : TileType.WALL_CAST_IRON_NE);
             if (isFurnace) t.addFurnace(w - 0.5f, y + 0.5f);
         }
 
-        // Outer corner
+        // Outer corner junction
         t.setTile(w - 1, h - 1, TileType.WALL_CORNER_OUTER);
 
-        // South boundary
-        for (int x = 0; x < w; x++) {
-            t.setTile(x, 0, TileType.WALL_CAST_IRON_NW);
-        }
-
-        // West boundary
-        for (int y = 0; y < h; y++) {
-            t.setTile(0, y, TileType.WALL_CAST_IRON_NE);
-        }
-
-        // 3. Clear open doorways at socket locations
+        // 4. Clear open doorways at socket locations
         for (int i = 0; i < t.sockets.size; i++) {
             Socket s = t.sockets.get(i);
             for (int k = 0; k < s.clearanceWidth; k++) {

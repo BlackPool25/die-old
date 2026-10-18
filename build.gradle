@@ -9,22 +9,82 @@ buildscript {
     }
 }
 
-plugins {
-    id 'java'
+allprojects {
+    apply plugin: 'eclipse'
+    apply plugin: 'idea'
+
+    ext {
+        appName = "Die Old"
+        gdxVersion = '1.13.1'
+        box2DLightsVersion = '1.5'
+        ashleyVersion = '1.7.4'
+        junitVersion = '5.10.2'
+    }
+
+    repositories {
+        mavenCentral()
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+        maven { url 'https://oss.sonatype.org/content/repositories/releases/' }
+    }
 }
 
-repositories {
-    mavenCentral()
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
-    maven { url 'https://oss.sonatype.org/content/repositories/releases/' }
+project(":core") {
+    apply plugin: "java-library"
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
+    dependencies {
+        api "com.badlogicgames.gdx:gdx:$gdxVersion"
+        api "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+        api "com.badlogicgames.box2dlights:box2dlights:$box2DLightsVersion"
+        api "com.badlogicgames.ashley:ashley:$ashleyVersion"
+
+        testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
+        testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+        testImplementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"
+        testImplementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+        testImplementation "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+    }
+
+    test {
+        useJUnitPlatform()
+        testLogging {
+            events "passed", "skipped", "failed"
+        }
+    }
 }
 
-dependencies {
-    implementation 'com.badlogicgames.gdx:gdx-tools:1.13.1'
+project(":desktop") {
+    apply plugin: "java"
+    apply plugin: "application"
+
+    mainClassName = "com.dieold.game.desktop.DesktopLauncher"
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
+    dependencies {
+        implementation project(":core")
+        implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+        implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+        implementation "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+    }
+
+    run {
+        workingDir = rootProject.projectDir
+        ignoreExitValue = true
+    }
 }
 
 tasks.register('packTextures', JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
+    classpath = project(':core').sourceSets.main.runtimeClasspath
     mainClass = 'com.badlogic.gdx.tools.texturepacker.TexturePacker'
     args = [
         project.hasProperty('inputDir') ? project.property('inputDir') : 'assets_raw',
@@ -53,26 +113,6 @@ tasks.register('packAllAtlases') {
             println "Packing characters from ${charDir.absolutePath}..."
             com.badlogic.gdx.tools.texturepacker.TexturePacker.process(settings, charDir.absolutePath, outDir.absolutePath, 'characters')
         }
-
-        // 2. Pack tileset
-        File tileDir = file('assets/sprites_raw/tilesets')
-        if (tileDir.exists()) {
-            println "Packing tilesets from ${tileDir.absolutePath}..."
-            com.badlogic.gdx.tools.texturepacker.TexturePacker.process(settings, tileDir.absolutePath, outDir.absolutePath, 'tileset')
-        }
-
-        // 3. Pack UI
-        File uiDir = file('assets/sprites_raw/ui')
-        if (uiDir.exists()) {
-            println "Packing UI from ${uiDir.absolutePath}..."
-            com.badlogic.gdx.tools.texturepacker.TexturePacker.process(settings, uiDir.absolutePath, outDir.absolutePath, 'ui')
-        }
-
-        // 4. Pack VFX
-        File vfxDir = file('assets/sprites_raw/vfx')
-        if (vfxDir.exists()) {
-            println "Packing VFX from ${vfxDir.absolutePath}..."
-            com.badlogic.gdx.tools.texturepacker.TexturePacker.process(settings, vfxDir.absolutePath, outDir.absolutePath, 'vfx')
-        }
     }
 }
+

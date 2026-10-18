@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -25,11 +26,13 @@ import com.dieold.game.physics.CombatContactListener;
 import com.dieold.game.render.IsometricProjection;
 import com.dieold.game.ui.CombatHUD;
 import com.dieold.game.util.AssetResolver;
+import com.dieold.game.world.*;
 
 /**
  * 2.5D Isometric Combat Engine Playground Screen:
  * Ingests production atlases, simulates Box2D top-down physics, executes 180° deflection,
  * wall-slam ragdoll impacts, hitstop freeze, raycast LOS enemy agro, and real-time Scene2D HUD.
+ * Milestone 3: Procedural Jigsaw Dungeon, Chamber Lockdown Gates, Clamped Camera, and Fog of War.
  */
 public class PlaygroundScreen implements Screen,
         InputSystem.InputEventListener,
@@ -49,6 +52,13 @@ public class PlaygroundScreen implements Screen,
     private Engine engine;
     private EntityFactory entityFactory;
     private ArenaBuilder arenaBuilder;
+    private DungeonLevel dungeonLevel;
+    private JigsawDungeonGenerator dungeonGenerator;
+    private Array<PlacedRoom> dungeonRooms;
+    private ChamberCameraSystem cameraSystem;
+    private FogOfWarSystem fogOfWar;
+    private RoomLockdownManager lockdownManager;
+
     private HitstopController hitstop;
     private ScreenShake screenShake;
     private CombatContactListener contactListener;
@@ -89,11 +99,19 @@ public class PlaygroundScreen implements Screen,
         engine = new Engine();
         entityFactory = new EntityFactory(engine, world);
 
-        // 4. Construct Obsidian Foundry Arena (22x22 layout)
-        arenaBuilder = new ArenaBuilder();
-        arenaBuilder.buildArena(world, tilesetAtlas);
+        // 4. Procedural Jigsaw Dungeon Generation (12 Chambers, Biome 1 Obsidian Foundry)
+        dungeonGenerator = new JigsawDungeonGenerator();
+        dungeonRooms = dungeonGenerator.generate(20261018L, 12);
+        dungeonLevel = new DungeonLevel();
+        dungeonLevel.buildDungeon(world, tilesetAtlas, dungeonRooms);
+        arenaBuilder = dungeonLevel;
 
-        // 5. Register Ashley Systems in strict sequence
+        // 5. Chamber Level Engine Systems
+        cameraSystem = new ChamberCameraSystem(gameCamera, dungeonLevel);
+        fogOfWar = new FogOfWarSystem(dungeonLevel);
+        lockdownManager = new RoomLockdownManager(dungeonLevel, world, entityFactory, screenShake);
+
+        // 6. Register Ashley Systems in strict sequence
         InputSystem inputSystem = new InputSystem(gameCamera);
         inputSystem.setListener(this);
 
@@ -103,7 +121,8 @@ public class PlaygroundScreen implements Screen,
         CombatSystem combatSystem = new CombatSystem(world);
         PhysicsSystem physicsSystem = new PhysicsSystem(world, hitstop, contactListener);
         AnimationSystem animationSystem = new AnimationSystem(charactersAtlas, vfxAtlas, hitstop);
-        RenderSystem renderSystem = new RenderSystem(batch, gameCamera, arenaBuilder, screenShake);
+        RenderSystem renderSystem = new RenderSystem(batch, gameCamera, dungeonLevel, screenShake);
+        renderSystem.setFogOfWarSystem(fogOfWar);
 
         engine.addSystem(inputSystem);     // Priority 10
         engine.addSystem(enemySystem);    // Priority 30
@@ -112,20 +131,25 @@ public class PlaygroundScreen implements Screen,
         engine.addSystem(animationSystem);// Priority 70
         engine.addSystem(renderSystem);   // Priority 80
 
-        // 6. Spawn Player Youth in center
-        player = entityFactory.createPlayer(10.5f, 10.5f);
-
-        // 7. Spawn 3 Foundry Hound Automata distributed in separate quadrants with LOS patrol routes
-        spawnHound(6.0f, 6.0f, 0.0f);
-        spawnHound(15.0f, 15.0f, 120.0f);
-        spawnHound(6.0f, 15.0f, 240.0f);
+        // 7. Spawn Player Youth in IngressHub spawn chamber
+        PlacedRoom ingressHub = dungeonRooms.get(0);
+        float spawnX = ingressHub.gridX + 8.0f;
+        float spawnY = ingressHub.gridY + 8.0f;
+        if (ingressHub.template.playerSpawns.size > 0) {
+            Vector2 sp = ingressHub.template.playerSpawns.get(0);
+            spawnX = ingressHub.gridX + sp.x;
+            spawnY = ingressHub.gridY + sp.y;
+        }
+        player = entityFactory.createPlayer(spawnX, spawnY);
+        cameraSystem.setRoom(ingressHub, true);
+        fogOfWar.discoverRoom(ingressHub);
 
         // 8. Connect Production Scene2D HUD
         Viewport hudViewport = new ScreenViewport();
         hud = new CombatHUD(hudViewport, uiAtlas);
 
         // Center camera initially on player
-        IsometricProjection.worldToScreen(10.5f, 10.5f, 0f, tempPlayerScreen);
+        IsometricProjection.worldToScreen(spawnX, spawnY, 0f, tempPlayerScreen);
         gameCamera.position.set(tempPlayerScreen.x, tempPlayerScreen.y, 0f);
         gameCamera.update();
     }
@@ -147,13 +171,13 @@ public class PlaygroundScreen implements Screen,
         Gdx.gl.glClearColor(0.04f, 0.04f, 0.06f, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // 1. Camera Smooth Tracking on Player
+        // 1. Camera Tracking & Chamber Clamping, Fog of War, and Chamber Lockdown
         if (player != null) {
             Transform2DComponent pTransform = ComponentMappers.transform.get(player);
             if (pTransform != null) {
-                IsometricProjection.worldToScreen(pTransform.position.x, pTransform.position.y, pTransform.z, tempPlayerScreen);
-                gameCamera.position.x += (tempPlayerScreen.x - gameCamera.position.x) * 0.10f;
-                gameCamera.position.y += (tempPlayerScreen.y - gameCamera.position.y) * 0.10f;
+                cameraSystem.update(delta, pTransform.position.x, pTransform.position.y, pTransform.z);
+                fogOfWar.update(delta, pTransform.position.x, pTransform.position.y);
+                lockdownManager.update(delta, pTransform.position.x, pTransform.position.y);
             }
         }
 
@@ -259,6 +283,9 @@ public class PlaygroundScreen implements Screen,
         tilesetAtlas.dispose();
         uiAtlas.dispose();
         vfxAtlas.dispose();
+        if (lockdownManager != null) {
+            lockdownManager.dispose();
+        }
         world.dispose();
     }
 

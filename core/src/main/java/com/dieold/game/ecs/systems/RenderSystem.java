@@ -21,7 +21,11 @@ import com.dieold.game.arena.ArenaBuilder.TileRenderItem;
 import com.dieold.game.combat.ScreenShake;
 import com.dieold.game.ecs.ComponentMappers;
 import com.dieold.game.ecs.components.*;
+import com.dieold.game.render.CutawayShader;
 import com.dieold.game.render.IsometricProjection;
+import com.dieold.game.world.DungeonLevel;
+import com.dieold.game.world.FogOfWarSystem;
+import com.dieold.game.world.PlacedRoom;
 
 import java.util.Comparator;
 
@@ -52,6 +56,9 @@ public class RenderSystem extends EntitySystem implements Disposable {
         public float shadowRadius = 16f;
         public AtlasRegion region;
         public final Color tint = new Color(Color.WHITE);
+        public boolean isWallOrPillar = false;
+        public float worldX = 0f;
+        public float worldY = 0f;
 
         @Override
         public void reset() {
@@ -70,6 +77,9 @@ public class RenderSystem extends EntitySystem implements Disposable {
             shadowRadius = 16f;
             region = null;
             tint.set(Color.WHITE);
+            isWallOrPillar = false;
+            worldX = 0f;
+            worldY = 0f;
         }
     }
 
@@ -139,6 +149,12 @@ public class RenderSystem extends EntitySystem implements Disposable {
     // Pre-allocated math vectors
     private final Vector2 tempScreen = new Vector2();
     private final Vector2 tempGround = new Vector2();
+    private final Vector2 tempPlayerCutaway = new Vector2();
+    private final Color tempFogColor = new Color();
+
+    private final CutawayShader cutawayShader;
+    private DungeonLevel dungeonLevel;
+    private FogOfWarSystem fogOfWarSystem;
 
     public RenderSystem(SpriteBatch batch, Camera camera, ArenaBuilder arenaBuilder, ScreenShake screenShake) {
         super(80); // System Priority 80
@@ -147,8 +163,26 @@ public class RenderSystem extends EntitySystem implements Disposable {
         this.arenaBuilder = arenaBuilder;
         this.screenShake = screenShake;
 
+        this.cutawayShader = new CutawayShader();
+        if (arenaBuilder instanceof DungeonLevel dl) {
+            this.dungeonLevel = dl;
+            this.fogOfWarSystem = new FogOfWarSystem(dl);
+        }
+
         createProceduralTextures();
         initEmbers();
+    }
+
+    public void setFogOfWarSystem(FogOfWarSystem fogOfWarSystem) {
+        this.fogOfWarSystem = fogOfWarSystem;
+    }
+
+    public FogOfWarSystem getFogOfWarSystem() {
+        return fogOfWarSystem;
+    }
+
+    public CutawayShader getCutawayShader() {
+        return cutawayShader;
     }
 
     private void createProceduralTextures() {
@@ -258,9 +292,15 @@ public class RenderSystem extends EntitySystem implements Disposable {
             TileRenderItem tile = floorTiles.get(i);
             if (tile.region != null) {
                 IsometricProjection.worldGroundToScreen(tile.worldX, tile.worldY, tempScreen);
+                if (dungeonLevel != null && fogOfWarSystem != null) {
+                    PlacedRoom r = dungeonLevel.getRoomAt(tile.worldX, tile.worldY);
+                    fogOfWarSystem.getRoomTint(r, tempFogColor);
+                    batch.setColor(tempFogColor);
+                }
                 batch.draw(tile.region, tempScreen.x - tile.originX, tempScreen.y - tile.originY);
             }
         }
+        batch.setColor(Color.WHITE);
 
         // 2. Render Atmospheric Molten Slag Glow Decals (Vents & Furnace Vents)
         renderAmbientGlows();
@@ -288,6 +328,13 @@ public class RenderSystem extends EntitySystem implements Disposable {
                 entry.originY = wall.originY;
                 entry.region = wall.region;
                 entry.drawShadow = false;
+                entry.isWallOrPillar = true;
+                entry.worldX = wall.worldX;
+                entry.worldY = wall.worldY;
+                if (dungeonLevel != null && fogOfWarSystem != null) {
+                    PlacedRoom r = dungeonLevel.getRoomAt(wall.worldX, wall.worldY);
+                    fogOfWarSystem.getRoomTint(r, entry.tint);
+                }
                 sortedEntries.add(entry);
             }
         }
@@ -325,6 +372,9 @@ public class RenderSystem extends EntitySystem implements Disposable {
             entry.drawShadow = renderable.drawShadow;
             entry.shadowRadius = renderable.shadowRadiusX * renderable.scale;
             entry.tint.set(renderable.tint);
+            entry.isWallOrPillar = false;
+            entry.worldX = transform.position.x;
+            entry.worldY = transform.position.y;
             sortedEntries.add(entry);
         }
 
@@ -352,6 +402,9 @@ public class RenderSystem extends EntitySystem implements Disposable {
             entry.scaleY = vfx.scale;
             entry.region = vfx.currentRegion;
             entry.drawShadow = false;
+            entry.isWallOrPillar = false;
+            entry.worldX = transform.position.x;
+            entry.worldY = transform.position.y;
             sortedEntries.add(entry);
         }
 
@@ -374,10 +427,43 @@ public class RenderSystem extends EntitySystem implements Disposable {
             }
         }
 
+        // Track player screen position for foreground cutaway shader
+        float playerScreenX = 0f;
+        float playerScreenY = 0f;
+        boolean hasPlayer = false;
+        if (playerEntities != null && playerEntities.size() > 0) {
+            Entity p = playerEntities.get(0);
+            Transform2DComponent pTrans = ComponentMappers.transform.get(p);
+            if (pTrans != null) {
+                IsometricProjection.worldToScreen(pTrans.position.x, pTrans.position.y, pTrans.z, tempPlayerCutaway);
+                playerScreenX = tempPlayerCutaway.x;
+                playerScreenY = tempPlayerCutaway.y;
+                hasPlayer = true;
+            }
+        }
+
+        boolean cutawayActive = cutawayShader != null && cutawayShader.isCompiled();
+        if (cutawayActive) {
+            batch.setShader(cutawayShader.getShaderProgram());
+        }
+
         // 5. Render Depth-Sorted Sprites (Entities, Walls, Pillars, VFX)
         for (int i = 0; i < totalSorted; i++) {
             RenderEntry entry = sortedEntries.get(i);
             if (entry.region != null) {
+                if (cutawayActive) {
+                    if (entry.isWallOrPillar && hasPlayer) {
+                        float dist = (float) Math.hypot(entry.screenX - playerScreenX, entry.screenY - playerScreenY);
+                        if (dist < 64.0f) {
+                            cutawayShader.bindAperture(playerScreenX, playerScreenY, 52.0f, true);
+                        } else {
+                            cutawayShader.bindAperture(0f, 0f, 0f, false);
+                        }
+                    } else {
+                        cutawayShader.bindAperture(0f, 0f, 0f, false);
+                    }
+                }
+
                 batch.setColor(entry.tint);
                 if (entry.rotation != 0f || entry.scaleX != 1f || entry.scaleY != 1f) {
                     batch.draw(entry.region,
@@ -391,6 +477,9 @@ public class RenderSystem extends EntitySystem implements Disposable {
                     batch.draw(entry.region, entry.screenX - entry.originX, entry.screenY - entry.originY);
                 }
             }
+        }
+        if (cutawayActive) {
+            batch.setShader(null);
         }
         batch.setColor(Color.WHITE);
 
@@ -502,6 +591,9 @@ public class RenderSystem extends EntitySystem implements Disposable {
         if (emberTexture != null) {
             emberTexture.dispose();
             emberTexture = null;
+        }
+        if (cutawayShader != null) {
+            cutawayShader.dispose();
         }
     }
 }

@@ -1716,14 +1716,14 @@ foundry_hound_idle_dir0
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 0
+  index: 9
 foundry_hound_idle_dir0
   rotate: false
   xy: 393, 491
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 9
+  index: 0
 foundry_hound_hit_react_dir0
   rotate: false
   xy: 491, 589
@@ -2052,14 +2052,14 @@ foundry_hound_idle_dir2
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 0
+  index: 9
 foundry_hound_idle_dir2
   rotate: false
   xy: 785, 589
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 9
+  index: 0
 foundry_hound_hit_react_dir2
   rotate: false
   xy: 883, 687
@@ -2220,14 +2220,14 @@ foundry_hound_idle_dir3
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 9
+  index: 0
 foundry_hound_idle_dir3
   rotate: false
   xy: 491, 1
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 0
+  index: 9
 foundry_hound_hit_react_dir3
   rotate: false
   xy: 589, 99
@@ -7736,7 +7736,7 @@ player_youth_attack_light_combo_dir1
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 12
+  index: 4
 player_youth_attack_light_combo_dir1
   rotate: false
   xy: 589, 1
@@ -7750,7 +7750,7 @@ player_youth_attack_light_combo_dir1
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 4
+  index: 12
 player_youth_attack_light_combo_dir1
   rotate: false
   xy: 687, 99
@@ -8288,13 +8288,6 @@ player_youth_attack_light_combo_dir3
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 12
-player_youth_attack_light_combo_dir3
-  rotate: false
-  xy: 491, 491
-  size: 96, 96
-  orig: 96, 96
-  offset: 0, 0
   index: 4
 player_youth_attack_light_combo_dir3
   rotate: false
@@ -8303,6 +8296,13 @@ player_youth_attack_light_combo_dir3
   orig: 96, 96
   offset: 0, 0
   index: 8
+player_youth_attack_light_combo_dir3
+  rotate: false
+  xy: 491, 491
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: 12
 player_youth_attack_light_combo_dir3
   rotate: false
   xy: 589, 589
@@ -8561,14 +8561,14 @@ player_youth_attack_light_combo_dir4
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 4
+  index: 8
 player_youth_attack_light_combo_dir4
   rotate: false
   xy: 491, 99
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 8
+  index: 4
 player_youth_attack_light_combo_dir4
   rotate: false
   xy: 491, 99
@@ -8589,8 +8589,15 @@ player_youth_hit_react_dir4
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 5
+  index: 0
 player_youth_hit_react_dir4
+  rotate: false
+  xy: 491, 99
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: 5
+player_youth_idle_dir4
   rotate: false
   xy: 491, 99
   size: 96, 96
@@ -8604,13 +8611,6 @@ player_youth_idle_dir4
   orig: 96, 96
   offset: 0, 0
   index: 9
-player_youth_idle_dir4
-  rotate: false
-  xy: 491, 99
-  size: 96, 96
-  orig: 96, 96
-  offset: 0, 0
-  index: 0
 player_youth_attack_light_combo_dir4
   rotate: false
   xy: 589, 197
@@ -8952,14 +8952,14 @@ player_youth_attack_light_combo_dir5
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 4
+  index: 12
 player_youth_attack_light_combo_dir5
   rotate: false
   xy: 1, 491
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 12
+  index: 4
 player_youth_attack_light_combo_dir5
   rotate: false
   xy: 99, 589
@@ -9218,14 +9218,14 @@ player_youth_attack_light_combo_dir6
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 4
+  index: 8
 player_youth_attack_light_combo_dir6
   rotate: false
   xy: 393, 491
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 8
+  index: 4
 player_youth_attack_light_combo_dir6
   rotate: false
   xy: 393, 491
@@ -9491,13 +9491,6 @@ player_youth_attack_light_combo_dir7
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 12
-player_youth_attack_light_combo_dir7
-  rotate: false
-  xy: 785, 589
-  size: 96, 96
-  orig: 96, 96
-  offset: 0, 0
   index: 8
 player_youth_attack_light_combo_dir7
   rotate: false
@@ -9506,6 +9499,13 @@ player_youth_attack_light_combo_dir7
   orig: 96, 96
   offset: 0, 0
   index: 4
+player_youth_attack_light_combo_dir7
+  rotate: false
+  xy: 785, 589
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: 12
 player_youth_attack_light_combo_dir7
   rotate: false
   xy: 883, 687
@@ -9784,14 +9784,14 @@ player_youth_idle_dir0
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 0
+  index: 9
 player_youth_idle_dir0
   rotate: false
   xy: 1, 883
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 9
+  index: 0
 player_youth_death_dir0
   rotate: false
   xy: 1, 785
@@ -10652,8 +10652,15 @@ player_youth_hit_react_dir3
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 5
+  index: 0
 player_youth_hit_react_dir3
+  rotate: false
+  xy: 785, 295
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: 5
+player_youth_idle_dir3
   rotate: false
   xy: 785, 295
   size: 96, 96
@@ -10667,13 +10674,6 @@ player_youth_idle_dir3
   orig: 96, 96
   offset: 0, 0
   index: 9
-player_youth_idle_dir3
-  rotate: false
-  xy: 785, 295
-  size: 96, 96
-  orig: 96, 96
-  offset: 0, 0
-  index: 0
 player_youth_death_dir3
   rotate: false
   xy: 883, 393
@@ -11155,14 +11155,14 @@ player_youth_idle_dir5
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 9
+  index: 0
 player_youth_idle_dir5
   rotate: false
   xy: 1, 1
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 0
+  index: 9
 player_youth_death_dir5
   rotate: false
   xy: 99, 99
@@ -11449,14 +11449,14 @@ player_youth_idle_dir6
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 0
+  index: 9
 player_youth_idle_dir6
   rotate: false
   xy: 589, 295
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
-  index: 9
+  index: 0
 player_youth_death_dir6
   rotate: false
   xy: 687, 393

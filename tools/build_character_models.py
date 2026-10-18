@@ -217,10 +217,22 @@ def build_foundry_hound(output_blend="assets/models/foundry_hound.blend"):
                 break
     rig.name = "CharacterRig"
 
+    # Unparent rig from RootNode keeping transform
+    bpy.ops.object.select_all(action='DESELECT')
+    rig.select_set(True)
+    bpy.context.view_layer.objects.active = rig
+    bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
+
     # Remove extra empties / icospheres
     for obj in list(bpy.data.objects):
-        if obj.type == 'EMPTY' or obj.name == 'Icosphere':
+        if obj.type == 'EMPTY' or obj.name == 'Icosphere' or obj.name == 'RootNode':
             bpy.data.objects.remove(obj, do_unlink=True)
+
+    # Correct glTF Y-up to Z-up orientation: -90 deg X puts hound on all 4 paws with spine horizontal along Y
+    # Scale from 100 down to 50 for realistic hound proportions (length ~1.4m, height ~0.85m)
+    rig.rotation_euler = (math.radians(-90), 0, 0)
+    rig.scale = (50.0, 50.0, 50.0)
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
     # Overhaul materials for clockwork foundry aesthetic
     # 1. Main plates -> Cast Iron / Dark Basalt (#1B1E23)
@@ -265,7 +277,7 @@ def build_foundry_hound(output_blend="assets/models/foundry_hound.blend"):
 
     # Add Clockwork Components:
     # A. Exposed Furnace Core (Glowing Molten Core inside Torso)
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.12, location=(0.0, 0.05, 0.50))
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.08, location=(0.0, -0.10, 0.50))
     core_obj = bpy.context.active_object
     core_obj.name = "Furnace_Core_Mesh"
     core_obj.parent = rig
@@ -285,18 +297,18 @@ def build_foundry_hound(output_blend="assets/models/foundry_hound.blend"):
     core_obj.data.materials.append(mat_core)
 
     # B. Twin Brass Exhaust Pistons on back/spine
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.035, depth=0.22, location=(0.08, -0.05, 0.70))
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.025, depth=0.16, location=(0.06, 0.12, 0.80))
     piston_r = bpy.context.active_object
     piston_r.name = "Piston_Right"
-    piston_r.rotation_euler = (math.radians(-25), 0, math.radians(10))
+    piston_r.rotation_euler = (math.radians(-15), 0, math.radians(10))
     piston_r.parent = rig
     piston_r.parent_type = 'BONE'
     piston_r.parent_bone = 'Torso'
 
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.035, depth=0.22, location=(-0.08, -0.05, 0.70))
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.025, depth=0.16, location=(-0.06, 0.12, 0.80))
     piston_l = bpy.context.active_object
     piston_l.name = "Piston_Left"
-    piston_l.rotation_euler = (math.radians(-25), 0, math.radians(-10))
+    piston_l.rotation_euler = (math.radians(-15), 0, math.radians(-10))
     piston_l.parent = rig
     piston_l.parent_type = 'BONE'
     piston_l.parent_bone = 'Torso'

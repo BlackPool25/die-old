@@ -1,0 +1,78 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+        maven { url 'https://oss.sonatype.org/content/repositories/releases/' }
+    }
+    dependencies {
+        classpath 'com.badlogicgames.gdx:gdx-tools:1.13.1'
+    }
+}
+
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+    maven { url 'https://oss.sonatype.org/content/repositories/releases/' }
+}
+
+dependencies {
+    implementation 'com.badlogicgames.gdx:gdx-tools:1.13.1'
+}
+
+tasks.register('packTextures', JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.badlogic.gdx.tools.texturepacker.TexturePacker'
+    args = [
+        project.hasProperty('inputDir') ? project.property('inputDir') : 'assets_raw',
+        project.hasProperty('outputDir') ? project.property('outputDir') : 'assets/atlases',
+        project.hasProperty('packName') ? project.property('packName') : 'game'
+    ]
+}
+
+tasks.register('packAllAtlases') {
+    doLast {
+        def settings = new com.badlogic.gdx.tools.texturepacker.TexturePacker.Settings()
+        settings.pot = true
+        settings.fast = false
+        settings.combineSubdirectories = false
+        settings.paddingX = 2
+        settings.paddingY = 2
+        settings.duplicatePadding = true
+        settings.bleed = true
+
+        File outDir = file('assets/atlases')
+        outDir.mkdirs()
+
+        // 1. Pack characters
+        File charDir = file('assets/sprites_raw/characters')
+        if (charDir.exists()) {
+            println "Packing characters from ${charDir.absolutePath}..."
+            com.badlogic.gdx.tools.texturepacker.TexturePacker.process(settings, charDir.absolutePath, outDir.absolutePath, 'characters')
+        }
+
+        // 2. Pack tileset
+        File tileDir = file('assets/sprites_raw/tilesets')
+        if (tileDir.exists()) {
+            println "Packing tilesets from ${tileDir.absolutePath}..."
+            com.badlogic.gdx.tools.texturepacker.TexturePacker.process(settings, tileDir.absolutePath, outDir.absolutePath, 'tileset')
+        }
+
+        // 3. Pack UI
+        File uiDir = file('assets/sprites_raw/ui')
+        if (uiDir.exists()) {
+            println "Packing UI from ${uiDir.absolutePath}..."
+            com.badlogic.gdx.tools.texturepacker.TexturePacker.process(settings, uiDir.absolutePath, outDir.absolutePath, 'ui')
+        }
+
+        // 4. Pack VFX
+        File vfxDir = file('assets/sprites_raw/vfx')
+        if (vfxDir.exists()) {
+            println "Packing VFX from ${vfxDir.absolutePath}..."
+            com.badlogic.gdx.tools.texturepacker.TexturePacker.process(settings, vfxDir.absolutePath, outDir.absolutePath, 'vfx')
+        }
+    }
+}

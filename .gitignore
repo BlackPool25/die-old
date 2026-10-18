@@ -1,0 +1,12 @@
+.gradle/
+build/
+**/build/
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+tools/__pycache__/
+*.pyc
+*.blend1
+.DS_Store

@@ -1,0 +1,167 @@
+
+ui.png
+size: 1024, 256
+format: RGBA8888
+filter: Nearest, Nearest
+repeat: none
+age_banner_frame
+  rotate: false
+  xy: 1, 65
+  size: 160, 32
+  orig: 160, 32
+  offset: 0, 0
+  index: -1
+alchemical_flask
+  rotate: false
+  xy: 339, 153
+  size: 36, 48
+  orig: 36, 48
+  offset: 0, 0
+  index: -1
+boss_meter_fill
+  rotate: false
+  xy: 1, 203
+  size: 370, 20
+  orig: 370, 20
+  offset: 0, 0
+  index: -1
+boss_meter_frame
+  rotate: false
+  xy: 1, 225
+  size: 384, 28
+  orig: 384, 28
+  offset: 0, 0
+  index: -1
+chrono_dial_base
+  rotate: false
+  xy: 893, 125
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+chrono_glass_overlay
+  rotate: false
+  xy: 249, 23
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+chrono_needle
+  rotate: false
+  xy: 645, 107
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+chrono_pendant
+  rotate: false
+  xy: 387, 99
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+dash_pip_empty
+  rotate: false
+  xy: 1, 1
+  size: 20, 20
+  orig: 20, 20
+  offset: 0, 0
+  index: -1
+dash_pip_ready
+  rotate: false
+  xy: 163, 77
+  size: 20, 20
+  orig: 20, 20
+  offset: 0, 0
+  index: -1
+meter_frame
+  rotate: false
+  xy: 387, 229
+  size: 256, 24
+  orig: 256, 24
+  offset: 0, 0
+  index: -1
+meter_ghost_fill
+  rotate: false
+  xy: 1, 135
+  size: 246, 16
+  orig: 246, 16
+  offset: 0, 0
+  index: -1
+meter_health_fill
+  rotate: false
+  xy: 645, 237
+  size: 246, 16
+  orig: 246, 16
+  offset: 0, 0
+  index: -1
+meter_poise_fill
+  rotate: false
+  xy: 1, 117
+  size: 246, 16
+  orig: 246, 16
+  offset: 0, 0
+  index: -1
+meter_segment_notch
+  rotate: false
+  xy: 373, 207
+  size: 4, 16
+  orig: 4, 16
+  offset: 0, 0
+  index: -1
+meter_shield_fill
+  rotate: false
+  xy: 1, 99
+  size: 246, 16
+  orig: 246, 16
+  offset: 0, 0
+  index: -1
+runic_sockets_matrix
+  rotate: false
+  xy: 1, 153
+  size: 336, 48
+  orig: 336, 48
+  offset: 0, 0
+  index: -1
+socket_active
+  rotate: false
+  xy: 1, 23
+  size: 40, 40
+  orig: 40, 40
+  offset: 0, 0
+  index: -1
+socket_active_cyan
+  rotate: false
+  xy: 1, 23
+  size: 40, 40
+  orig: 40, 40
+  offset: 0, 0
+  index: -1
+socket_active_amber
+  rotate: false
+  xy: 775, 195
+  size: 40, 40
+  orig: 40, 40
+  offset: 0, 0
+  index: -1
+socket_active_purple
+  rotate: false
+  xy: 517, 187
+  size: 40, 40
+  orig: 40, 40
+  offset: 0, 0
+  index: -1
+socket_empty
+  rotate: false
+  xy: 43, 23
+  size: 40, 40
+  orig: 40, 40
+  offset: 0, 0
+  index: -1
+socket_locked
+  rotate: false
+  xy: 775, 153
+  size: 40, 40
+  orig: 40, 40
+  offset: 0, 0
+  index: -1

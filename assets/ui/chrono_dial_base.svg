@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="bronzeBezel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D4B49C"/>
+      <stop offset="25%" stop-color="#8B6D5A"/>
+      <stop offset="60%" stop-color="#4D3E36"/>
+      <stop offset="100%" stop-color="#201A17"/>
+    </linearGradient>
+    <radialGradient id="hubGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFE57F"/>
+      <stop offset="50%" stop-color="#FFAA00"/>
+      <stop offset="85%" stop-color="#8C2200"/>
+      <stop offset="100%" stop-color="#121417"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Outer Bezel Ring -->
+  <circle cx="128" cy="128" r="122" fill="#181B20" stroke="url(#bronzeBezel)" stroke-width="8"/>
+  <circle cx="128" cy="128" r="112" fill="#121417" stroke="#282D35" stroke-width="3"/>
+
+  <!-- 12 Astrolabe Perimeter Studs -->
+  <g fill="#FFAA00" stroke="#3B312B" stroke-width="1.5">
+    <circle cx="128" cy="12" r="5"/><circle cx="186" cy="27" r="5"/><circle cx="229" cy="70" r="5"/>
+    <circle cx="244" cy="128" r="5"/><circle cx="229" cy="186" r="5"/><circle cx="186" cy="229" r="5"/>
+    <circle cx="128" cy="244" r="5"/><circle cx="70" cy="229" r="5"/><circle cx="27" cy="186" r="5"/>
+    <circle cx="12" cy="128" r="5"/><circle cx="27" cy="70" r="5"/><circle cx="70" cy="27" r="5"/>
+  </g>
+
+  <!-- 4 Quadrants -->
+  <!-- Q1: Youth (Top-Right: 20-34) -->
+  <path d="M 128 128 L 128 20 A 108 108 0 0 1 236 128 Z" fill="#282D35" fill-opacity="0.55" stroke="#FFAA00" stroke-width="2"/>
+  <text x="165" y="70" fill="#FFE57F" font-family="serif" font-size="14" font-weight="bold">I</text>
+  <text x="155" y="90" fill="#BE9B83" font-family="sans-serif" font-size="10" font-weight="bold">YOUTH</text>
+  <text x="155" y="104" fill="#8B6D5A" font-family="sans-serif" font-size="8">20-34</text>
+
+  <!-- Q2: Prime (Bottom-Right: 35-54) -->
+  <path d="M 128 128 L 236 128 A 108 108 0 0 1 128 236 Z" fill="#22272E" fill-opacity="0.65" stroke="#8B6D5A" stroke-width="1.5"/>
+  <text x="165" y="175" fill="#D4B49C" font-family="serif" font-size="14" font-weight="bold">II</text>
+  <text x="155" y="195" fill="#BE9B83" font-family="sans-serif" font-size="10" font-weight="bold">PRIME</text>
+  <text x="155" y="209" fill="#8B6D5A" font-family="sans-serif" font-size="8">35-54</text>
+
+  <!-- Q3: Elder (Bottom-Left: 55-74) -->
+  <path d="M 128 128 L 128 236 A 108 108 0 0 1 20 128 Z" fill="#181B20" fill-opacity="0.75" stroke="#4A607A" stroke-width="1.5"/>
+  <text x="75" y="175" fill="#627D9E" font-family="serif" font-size="14" font-weight="bold">III</text>
+  <text x="65" y="195" fill="#4A607A" font-family="sans-serif" font-size="10" font-weight="bold">ELDER</text>
+  <text x="65" y="209" fill="#3A4B5F" font-family="sans-serif" font-size="8">55-74</text>
+
+  <!-- Q4: Ascendant (Top-Left: 75-80) -->
+  <path d="M 128 128 L 20 128 A 108 108 0 0 1 128 20 Z" fill="#121417" fill-opacity="0.85" stroke="#FF6600" stroke-width="2"/>
+  <text x="70" y="70" fill="#FF8800" font-family="serif" font-size="14" font-weight="bold">IV</text>
+  <text x="42" y="90" fill="#FFAA00" font-family="sans-serif" font-size="9" font-weight="bold">ASCENDANT</text>
+  <text x="65" y="104" fill="#C43B00" font-family="sans-serif" font-size="8">75-80</text>
+
+  <!-- Astrological / Year Graduation Ticks -->
+  <g stroke="#BE9B83" stroke-width="1.5">
+    <line x1="128" y1="20" x2="128" y2="32"/><line x1="236" y1="128" x2="224" y2="128"/>
+    <line x1="128" y1="236" x2="128" y2="224"/><line x1="20" y1="128" x2="32" y2="128"/>
+    <line x1="204" y1="52" x2="195" y2="61"/><line x1="204" y1="204" x2="195" y2="195"/>
+    <line x1="52" y1="204" x2="61" y2="195"/><line x1="52" y1="52" x2="61" y2="61"/>
+  </g>
+
+  <!-- Central Gear Medallion Hub -->
+  <circle cx="128" cy="128" r="38" fill="url(#hubGrad)" stroke="#121417" stroke-width="3"/>
+  <circle cx="128" cy="128" r="26" fill="#181B20" stroke="#FFAA00" stroke-width="1.5"/>
+  <circle cx="128" cy="128" r="10" fill="#FFAA00" stroke="#3B312B" stroke-width="2"/>
+</svg>

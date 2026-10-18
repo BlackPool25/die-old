@@ -105,15 +105,29 @@ public class CombatSystem extends EntitySystem {
 
                 case ATTACKING:
                     combat.comboResetTimer -= deltaTime;
-                    // Combo cancel window opens mid-attack
-                    if (combat.stateTimer >= 0.15f) {
+                    float attackDuration = (combat.comboStep == 3) ? 0.55f : 0.34f;
+                    float cancelWindow = (combat.comboStep == 3) ? 0.28f : 0.16f;
+
+                    if (combat.stateTimer >= cancelWindow) {
                         combat.comboWindowOpen = true;
                     }
-                    if (combat.stateTimer >= 0.35f) {
+                    if (combat.stateTimer >= attackDuration) {
                         combat.transitionTo(CombatStateComponent.State.IDLE);
+                        if (bodyComp != null && bodyComp.body != null) {
+                            bodyComp.body.setLinearVelocity(0f, 0f);
+                        }
                     }
                     if (combat.comboResetTimer <= 0f) {
                         combat.comboStep = 0;
+                    }
+                    break;
+
+                case HEAVY_ATTACKING:
+                    if (combat.stateTimer >= 0.55f) {
+                        combat.transitionTo(CombatStateComponent.State.IDLE);
+                        if (bodyComp != null && bodyComp.body != null) {
+                            bodyComp.body.setLinearVelocity(0f, 0f);
+                        }
                     }
                     break;
 

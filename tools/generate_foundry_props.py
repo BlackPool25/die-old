@@ -110,27 +110,26 @@ def generate_floor_magma_fissure():
 
             dist_fissure = min(dist_fissure1, dist_fissure2)
 
-            if dist_fissure < 1.2:
-                # White-hot magma core
+            if dist_fissure < 0.6:
+                # White-hot molten core line (fine vein)
                 diff[y, x, :3] = C_SPARK_YELLOW
                 norm[y, x, :3] = (128, 128, 255)
-            elif dist_fissure < 2.5:
-                # Amber-orange incandescent slag
+            elif dist_fissure < 1.4:
+                # Amber-gold incandescent slag
                 diff[y, x, :3] = C_AMBER_GOLD
-                norm[y, x, :3] = (128, 128, 240)
-            elif dist_fissure < 3.8:
+                norm[y, x, :3] = (128, 128, 245)
+            elif dist_fissure < 2.2:
                 # Bright orange-red magma
                 diff[y, x, :3] = C_LAVA_BRIGHT
-                norm[y, x, :3] = (128, 128, 220)
-            elif dist_fissure < 5.2:
-                # Deep molten core & slag crust
+                norm[y, x, :3] = (128, 128, 230)
+            elif dist_fissure < 3.2:
+                # Darkening molten slag crust
                 diff[y, x, :3] = C_LAVA_CORE
-                norm[y, x, :3] = (128, 128, 200)
-            elif dist_fissure < 6.8:
+                norm[y, x, :3] = (128, 128, 210)
+            elif dist_fissure < 4.4:
                 # Scorched black basalt lip
                 diff[y, x, :3] = C_BASALT_DEEP
-                # Slanted normal at fissure edge
-                ny = math.copysign(0.4, y - y_fissure1)
+                ny = math.copysign(0.35, y - y_fissure1)
                 norm[y, x, 1] = int(ny * 127 + 128)
                 norm[y, x, 2] = 230
             elif d > 0.88:
@@ -138,7 +137,7 @@ def generate_floor_magma_fissure():
                 diff[y, x, :3] = C_BASALT_DARK
                 norm[y, x, :3] = (128, 128, 230)
             else:
-                # Chilled basalt slab surface
+                # Chilled basalt slab surface (85% calm floor area)
                 if (x + y * 2) % 7 == 0:
                     diff[y, x, :3] = C_BASALT_MID
                 elif (x * 3 + y * 5) % 11 == 0:
@@ -189,14 +188,9 @@ def generate_floor_iron_grate():
                         diff[y, x, :3] = C_IRON_MID
                         norm[y, x, :3] = (120, 120, 240)
                 else:
-                    # Mesh opening showing dark exhaust pit with amber embers
-                    if (x * 7 + y * 13) % 19 == 0:
-                        diff[y, x, :3] = C_LAVA_BRIGHT # Stray ember
-                    elif (x * 3 + y * 5) % 11 == 0:
-                        diff[y, x, :3] = C_LAVA_DEEP
-                    else:
-                        diff[y, x, :3] = C_DARK_VOID
-                    norm[y, x, :3] = (128, 128, 200)
+                    # Clean dark exhaust pit cavity
+                    diff[y, x, :3] = C_DARK_VOID if (x + y) % 3 != 0 else C_BASALT_DEEP
+                    norm[y, x, :3] = (128, 128, 215)
 
     # Rivets along border
     rivets = [(20, 7), (44, 7), (20, 25), (44, 25), (32, 3), (32, 29)]

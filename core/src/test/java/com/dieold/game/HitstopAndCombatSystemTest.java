@@ -96,4 +96,57 @@ public class HitstopAndCombatSystemTest {
         poise.currentPoise += poise.recoveryRate * 0.5f; // recovers 15
         assertEquals(85f, poise.currentPoise, 1e-4);
     }
+
+    @Test
+    @DisplayName("Verify Heavy Attack and progressive combo pacing mechanics")
+    public void testHeavyAttackAndComboProgression() {
+        com.dieold.game.ecs.components.CombatStateComponent combat = new com.dieold.game.ecs.components.CombatStateComponent();
+        assertEquals(com.dieold.game.ecs.components.CombatStateComponent.State.IDLE, combat.state);
+
+        // 1. Can execute heavy attack from IDLE
+        assertTrue(combat.canHeavyAttack());
+        combat.transitionTo(com.dieold.game.ecs.components.CombatStateComponent.State.HEAVY_ATTACKING);
+        assertEquals(com.dieold.game.ecs.components.CombatStateComponent.State.HEAVY_ATTACKING, combat.state);
+        assertFalse(combat.canMove(), "Cannot WASD move while executing heavy attack");
+        assertTrue(combat.canDash(), "Can animation-cancel heavy attack with phase dash");
+
+        // 2. Dash out of heavy attack
+        combat.transitionTo(com.dieold.game.ecs.components.CombatStateComponent.State.DASHING);
+        assertEquals(com.dieold.game.ecs.components.CombatStateComponent.State.DASHING, combat.state);
+
+        // 3. Return to SPRINT
+        combat.transitionTo(com.dieold.game.ecs.components.CombatStateComponent.State.SPRINT);
+        assertTrue(combat.canHeavyAttack(), "Can execute heavy attack from sprint");
+        assertTrue(combat.canAttack(), "Can execute light attack from sprint");
+
+        // 4. Light Attack Combo Chaining
+        combat.transitionTo(com.dieold.game.ecs.components.CombatStateComponent.State.ATTACKING);
+        combat.comboStep = 1;
+        combat.comboWindowOpen = false;
+        assertFalse(combat.canAttack(), "Cannot combo before cancel window opens");
+
+        // Window opens at 0.16s
+        combat.comboWindowOpen = true;
+        assertTrue(combat.canAttack(), "Can chain into combo step 2 when window opens");
+        assertTrue(combat.canHeavyAttack(), "Can combo-cancel into heavy attack when window opens");
+    }
+
+    @Test
+    @DisplayName("Verify mouse screen coordinates to 2.5D dimetric world vector conversion")
+    public void testMouseAimDimetricConversion() {
+        // Test East / Right on screen: ScreenDX = 100, ScreenDY = 0
+        float screenDX = 100f;
+        float screenDY = 0f;
+        float worldDX = 0.5f * (screenDY / 16.0f + screenDX / 27.712812f);
+        float worldDY = 0.5f * (screenDY / 16.0f - screenDX / 27.712812f);
+
+        assertTrue(worldDX > 0, "Moving right on screen moves positive along world X");
+        assertTrue(worldDY < 0, "Moving right on screen moves negative along world Y");
+
+        // Verify roundtrip back to screen
+        float roundtripScreenX = (worldDX - worldDY) * 27.712812f;
+        float roundtripScreenY = (worldDX + worldDY) * 16.0f;
+        assertEquals(screenDX, roundtripScreenX, 1e-3);
+        assertEquals(screenDY, roundtripScreenY, 1e-3);
+    }
 }

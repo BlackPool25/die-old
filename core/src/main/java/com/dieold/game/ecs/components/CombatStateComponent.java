@@ -13,6 +13,7 @@ public class CombatStateComponent implements Component, Poolable {
         IDLE,
         SPRINT,
         ATTACKING,
+        HEAVY_ATTACKING,
         DEFLECTING,
         DASHING,
         HITSTUN,
@@ -65,12 +66,16 @@ public class CombatStateComponent implements Component, Poolable {
         return state == State.IDLE || state == State.SPRINT || (state == State.ATTACKING && comboWindowOpen);
     }
 
+    public boolean canHeavyAttack() {
+        return state == State.IDLE || state == State.SPRINT || (state == State.ATTACKING && comboWindowOpen);
+    }
+
     public boolean canDeflect() {
         return state == State.IDLE || state == State.SPRINT;
     }
 
     public boolean canDash() {
-        return state == State.IDLE || state == State.SPRINT || state == State.ATTACKING;
+        return state == State.IDLE || state == State.SPRINT || state == State.ATTACKING || state == State.HEAVY_ATTACKING;
     }
 
     @Override

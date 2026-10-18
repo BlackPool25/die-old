@@ -72,7 +72,30 @@ public class AnimationSystem extends EntitySystem {
             Array<AtlasRegion> frames = getFrames(charactersAtlas, anim.characterPrefix, anim.action, anim.directionIndex);
             if (frames != null && frames.size > 0) {
                 int frameIndex;
-                if (anim.looping) {
+                if ("attack_light_combo".equals(anim.action)) {
+                    int frameOffset;
+                    int frameCount;
+                    if (combat != null && (combat.state == CombatStateComponent.State.HEAVY_ATTACKING || combat.comboStep == 3)) {
+                        frameOffset = 8;
+                        frameCount = 5; // Frames 8..12: Heavy Overhead Cleave / Finisher
+                    } else if (combat != null && combat.comboStep == 2) {
+                        frameOffset = 4;
+                        frameCount = 4; // Frames 4..7: Rising Cross-Slash
+                    } else {
+                        frameOffset = 0;
+                        frameCount = 4; // Frames 0..3: Snappy Horizontal Slash
+                    }
+
+                    int localFrame = (int) (anim.stateTime / anim.frameDuration);
+                    if (localFrame >= frameCount) {
+                        localFrame = frameCount - 1;
+                        anim.finished = true;
+                    }
+                    frameIndex = frameOffset + localFrame;
+                    if (frameIndex >= frames.size) {
+                        frameIndex = frames.size - 1;
+                    }
+                } else if (anim.looping) {
                     frameIndex = ((int) (anim.stateTime / anim.frameDuration)) % frames.size;
                 } else {
                     frameIndex = (int) (anim.stateTime / anim.frameDuration);
@@ -118,16 +141,34 @@ public class AnimationSystem extends EntitySystem {
         boolean isHound = anim.characterPrefix != null && anim.characterPrefix.contains("hound");
 
         if (combat.state == CombatStateComponent.State.DEAD) {
+            anim.lastComboStep = 0;
             anim.setAction("death", false, 0.10f);
         } else if (combat.state == CombatStateComponent.State.HITSTUN || combat.state == CombatStateComponent.State.WALL_SPLAT) {
+            anim.lastComboStep = 0;
             anim.setAction("hit_react", false, 0.08f);
         } else if (combat.state == CombatStateComponent.State.DEFLECTING) {
+            anim.lastComboStep = 0;
             anim.setAction("deflect_stance", true, 0.10f);
         } else if (combat.state == CombatStateComponent.State.ATTACKING) {
-            anim.setAction("attack_light_combo", false, 0.05f);
+            float dur = (combat.comboStep == 3) ? 0.115f : (combat.comboStep == 2 ? 0.090f : 0.085f);
+            if (anim.lastComboStep != combat.comboStep) {
+                anim.stateTime = 0f;
+                anim.finished = false;
+                anim.lastComboStep = combat.comboStep;
+            }
+            anim.setAction("attack_light_combo", false, dur);
+        } else if (combat.state == CombatStateComponent.State.HEAVY_ATTACKING) {
+            if (anim.lastComboStep != -1) {
+                anim.stateTime = 0f;
+                anim.finished = false;
+                anim.lastComboStep = -1;
+            }
+            anim.setAction("attack_light_combo", false, 0.115f);
         } else if (enemy != null && enemy.aiState == EnemyComponent.AIState.TELEGRAPHING) {
+            anim.lastComboStep = 0;
             anim.setAction("pounce_telegraph", false, 0.080f);
         } else if (combat.state == CombatStateComponent.State.SPRINT || combat.state == CombatStateComponent.State.DASHING) {
+            anim.lastComboStep = 0;
             if (isHound) {
                 // Quadruped stride matching: 1.0m stride across 8 frames
                 // Scales dynamically with velocity so paws plant solidly without skating
@@ -140,6 +181,7 @@ public class AnimationSystem extends EntitySystem {
             }
         } else {
             // Idle breathing cadence
+            anim.lastComboStep = 0;
             float idleDur = isHound ? 0.14f : 0.12f;
             anim.setAction("idle", true, idleDur);
         }

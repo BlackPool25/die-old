@@ -196,21 +196,51 @@ public class PlaygroundScreen implements Screen,
 
     // InputSystem Callbacks
     @Override
-    public void onPlayerAttack(Entity player, int comboStep, float angle) {
+    public void onPlayerAttack(Entity player, int comboStep, float worldAngle, float screenAngle) {
         Transform2DComponent transform = ComponentMappers.transform.get(player);
         if (transform == null) return;
 
-        // Spawn slash arc VFX
-        float spawnDist = 0.8f;
-        float sx = transform.position.x + MathUtils.cosDeg(angle) * spawnDist;
-        float sy = transform.position.y + MathUtils.sinDeg(angle) * spawnDist;
-        entityFactory.createVFX("slash_arc", sx, sy, angle, 1.2f);
+        // Spawn slash arc VFX oriented towards the mouse cursor on screen
+        float spawnDist = (comboStep == 3) ? 1.0f : 0.8f;
+        float sx = transform.position.x + MathUtils.cosDeg(worldAngle) * spawnDist;
+        float sy = transform.position.y + MathUtils.sinDeg(worldAngle) * spawnDist;
 
-        // Create melee damage hitbox
-        float damage = (comboStep == 3) ? 35f : 20f;
-        float poiseDamage = (comboStep == 3) ? 50f : 30f;
-        float knockback = (comboStep == 3) ? 10.0f : 5.0f;
-        entityFactory.createMeleeHitbox(player, sx, sy, angle, damage, poiseDamage, knockback, 0);
+        float vfxScale = (comboStep == 3) ? 1.5f : (comboStep == 2 ? 1.3f : 1.15f);
+        entityFactory.createVFX("slash_arc", sx, sy, screenAngle, vfxScale);
+
+        // If finisher combo step 3: trigger attack screen shake and dust puff at feet
+        if (comboStep == 3) {
+            screenShake.addShake(4.0f, 0.18f);
+            entityFactory.createVFX("dust_puff", transform.position.x, transform.position.y, screenAngle + 180f, 1.0f);
+        }
+
+        // Create melee damage hitbox with progressive combo damage and poise damage
+        float damage = (comboStep == 3) ? 45f : (comboStep == 2 ? 30f : 25f);
+        float poiseDamage = (comboStep == 3) ? 60f : (comboStep == 2 ? 40f : 35f);
+        float knockback = (comboStep == 3) ? 12.0f : (comboStep == 2 ? 7.5f : 6.0f);
+        entityFactory.createMeleeHitbox(player, sx, sy, worldAngle, damage, poiseDamage, knockback, 0);
+    }
+
+    @Override
+    public void onPlayerHeavyAttack(Entity player, float worldAngle, float screenAngle) {
+        Transform2DComponent transform = ComponentMappers.transform.get(player);
+        if (transform == null) return;
+
+        // Spawn heavy cleave slash arc VFX (1.8x massive blade arc)
+        float spawnDist = 1.05f;
+        float sx = transform.position.x + MathUtils.cosDeg(worldAngle) * spawnDist;
+        float sy = transform.position.y + MathUtils.sinDeg(worldAngle) * spawnDist;
+
+        entityFactory.createVFX("slash_arc", sx, sy, screenAngle, 1.8f);
+
+        // Ground dust shockwave at player's feet
+        entityFactory.createVFX("dust_puff", transform.position.x, transform.position.y, screenAngle + 180f, 1.3f);
+
+        // Visceral heavy attack screen shake jolt
+        screenShake.addShake(7.0f, 0.25f);
+
+        // Heavy attack: 60 damage, 85 poise damage (instant hound posture break), 15.0 knockback
+        entityFactory.createMeleeHitbox(player, sx, sy, worldAngle, 60f, 85f, 15.0f, 0);
     }
 
     @Override

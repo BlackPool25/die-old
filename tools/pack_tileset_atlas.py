@@ -17,6 +17,23 @@ def main():
     new_sheet = Image.new("RGBA", (new_w, new_h), (0, 0, 0, 0))
     new_sheet.paste(orig_sheet, (0, 0))
 
+    # Overwrite updated wall & tile sprites at their fixed atlas positions
+    existing_updates = [
+        ("wall_cast_iron_ne", 133, 35),
+        ("wall_cast_iron_ne_n", 199, 35),
+        ("wall_cast_iron_nw", 265, 35),
+        ("wall_cast_iron_nw_n", 331, 35),
+        ("wall_corner_outer", 397, 35),
+        ("wall_corner_outer_n", 463, 35),
+        ("wall_furnace_vent", 529, 35),
+        ("wall_furnace_vent_n", 595, 35),
+    ]
+    for name, ex_x, ex_y in existing_updates:
+        img_path = os.path.join(raw_dir, f"{name}.png")
+        if os.path.exists(img_path):
+            img = Image.open(img_path).convert("RGBA")
+            new_sheet.paste(img, (ex_x, ex_y))
+
     new_items = [
         ("floor_magma_fissure", 64, 32),
         ("floor_magma_fissure_n", 64, 32),

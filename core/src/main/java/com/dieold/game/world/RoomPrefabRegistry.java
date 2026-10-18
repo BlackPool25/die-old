@@ -97,7 +97,7 @@ public class RoomPrefabRegistry {
     }
 
     /**
-     * 2. CombatArenaSmall: 14x14 close-quarters encounter room with tactical anvils and magma fissures.
+     * 2. CombatArenaSmall: 14x14 close-quarters encounter room with tactical anvils and clean combat floor.
      */
     public RoomTemplate createCombatArenaSmall() {
         RoomTemplate t = new RoomTemplate("CombatArenaSmall", 14, 14, true);
@@ -108,22 +108,18 @@ public class RoomPrefabRegistry {
 
         buildBaseRoom(t);
 
-        // Molten magma fissure & heat vents
-        t.setTile(3, 9, TileType.FLOOR_MAGMA_FISSURE);
-        t.setTile(4, 9, TileType.FLOOR_MOLTEN_VENT);
-        t.setTile(9, 4, TileType.FLOOR_MOLTEN_VENT);
-        t.setTile(10, 4, TileType.FLOOR_MAGMA_FISSURE);
-        t.addHazard(3.5f, 9.5f);
-        t.addHazard(4.5f, 9.5f);
-        t.addHazard(9.5f, 4.5f);
-        t.addHazard(10.5f, 4.5f);
+        // Localized corner slag hazard pool (leaves 88% floor clean for dodging)
+        t.setTile(2, 10, TileType.FLOOR_MAGMA_FISSURE);
+        t.setTile(3, 10, TileType.FLOOR_MOLTEN_VENT);
+        t.addHazard(2.5f, 10.5f);
+        t.addHazard(3.5f, 10.5f);
 
         // Tactical Master Anvils (Wall-slam & cover)
         t.setTile(4, 4, TileType.PROP_FORGE_ANVIL);
         t.setTile(9, 9, TileType.PROP_FORGE_ANVIL);
 
-        // Slag Crucible
-        t.setTile(9, 5, TileType.PROP_SLAG_CAULDRON);
+        // Slag Crucible in alcove
+        t.setTile(11, 4, TileType.PROP_SLAG_CAULDRON);
 
         // Enemy Hound spawns
         t.addEnemySpawn(3.5f, 6.5f);
@@ -144,7 +140,7 @@ public class RoomPrefabRegistry {
 
         buildBaseRoom(t);
 
-        // 4 Monolithic Basalt Columns
+        // 4 Monolithic Basalt Columns for tactical cover
         int[] pillars = {5, 5, 5, 14, 14, 5, 14, 14};
         for (int i = 0; i < pillars.length; i += 2) {
             int px = pillars[i];
@@ -153,35 +149,24 @@ public class RoomPrefabRegistry {
             t.addPillar(px + 0.5f, py + 0.5f);
         }
 
-        // Central Smelting Platform (9,9 to 10,10)
+        // Central Master Anvil centerpiece
         t.setTile(9, 9, TileType.PROP_FORGE_ANVIL);
         t.setTile(10, 10, TileType.PROP_SLAG_CAULDRON);
-        t.setTile(9, 10, TileType.FLOOR_IRON_GRATE);
-        t.setTile(10, 9, TileType.FLOOR_IRON_GRATE);
 
-        // Flanking Magma Fissures
-        int[] fissures = {9, 6, 10, 6, 9, 13, 10, 13};
-        for (int i = 0; i < fissures.length; i += 2) {
-            int fx = fissures[i];
-            int fy = fissures[i + 1];
-            t.setTile(fx, fy, TileType.FLOOR_MAGMA_FISSURE);
-            t.addHazard(fx + 0.5f, fy + 0.5f);
-        }
+        // Localized perimeter hazard trenches
+        t.setTile(2, 9, TileType.FLOOR_MAGMA_FISSURE);
+        t.setTile(2, 10, TileType.FLOOR_MOLTEN_VENT);
+        t.addHazard(2.5f, 9.5f);
+        t.addHazard(2.5f, 10.5f);
 
-        // Wall Alcove Chain Hoists & Tactical Anvils
-        t.setTile(2, 10, TileType.PROP_CHAIN_SPOOL);
-        t.setTile(17, 10, TileType.PROP_CHAIN_SPOOL);
-        t.setTile(5, 9, TileType.PROP_FORGE_ANVIL);
-        t.setTile(14, 10, TileType.PROP_FORGE_ANVIL);
+        t.setTile(17, 9, TileType.FLOOR_MAGMA_FISSURE);
+        t.setTile(17, 10, TileType.FLOOR_MOLTEN_VENT);
+        t.addHazard(17.5f, 9.5f);
+        t.addHazard(17.5f, 10.5f);
 
-        // Molten heat hazard vents
-        int[] vents = {7, 9, 12, 9};
-        for (int i = 0; i < vents.length; i += 2) {
-            int vx = vents[i];
-            int vy = vents[i + 1];
-            t.setTile(vx, vy, TileType.FLOOR_MOLTEN_VENT);
-            t.addHazard(vx + 0.5f, vy + 0.5f);
-        }
+        // Wall Alcove Chain Hoists
+        t.setTile(3, 16, TileType.PROP_CHAIN_SPOOL);
+        t.setTile(16, 3, TileType.PROP_CHAIN_SPOOL);
 
         // Enemy spawns
         t.addEnemySpawn(6.5f, 6.5f);
@@ -192,7 +177,7 @@ public class RoomPrefabRegistry {
     }
 
     /**
-     * 4. HazardConduitVertical: 10x20 elongated corridor with suspended iron catwalk over molten fissures.
+     * 4. HazardConduitVertical: 10x20 corridor with generous 4-tile wide walkway and perimeter hazard alcoves.
      */
     public RoomTemplate createHazardConduitVertical() {
         RoomTemplate t = new RoomTemplate("HazardConduitVertical", 10, 20, false);
@@ -201,34 +186,32 @@ public class RoomPrefabRegistry {
 
         buildBaseRoom(t);
 
-        // Central suspended iron grate catwalk (x=4..5, y=1..18)
+        // Wide, clear walkway down center (x=4..5 clean basalt, x=3 & x=6 border runners)
         for (int y = 1; y <= 18; y++) {
-            t.setTile(4, y, TileType.FLOOR_IRON_GRATE);
-            t.setTile(5, y, TileType.FLOOR_IRON_GRATE);
+            t.setTile(3, y, TileType.FLOOR_BORDER);
+            t.setTile(6, y, TileType.FLOOR_BORDER);
         }
 
-        // Flanking molten slag fissures and vents
-        int[] hazardY = {4, 8, 12, 16};
-        for (int hy : hazardY) {
-            t.setTile(2, hy, TileType.FLOOR_MAGMA_FISSURE);
-            t.setTile(3, hy, TileType.FLOOR_MOLTEN_VENT);
-            t.setTile(6, hy, TileType.FLOOR_MOLTEN_VENT);
-            t.setTile(7, hy, TileType.FLOOR_MAGMA_FISSURE);
-            t.addHazard(2.5f, hy + 0.5f);
-            t.addHazard(3.5f, hy + 0.5f);
-            t.addHazard(6.5f, hy + 0.5f);
-            t.addHazard(7.5f, hy + 0.5f);
-        }
+        // Localized perimeter hazard alcoves (recessed, not obstructing movement)
+        t.setTile(1, 8, TileType.FLOOR_MAGMA_FISSURE);
+        t.setTile(1, 9, TileType.FLOOR_MOLTEN_VENT);
+        t.addHazard(1.5f, 8.5f);
+        t.addHazard(1.5f, 9.5f);
+
+        t.setTile(8, 14, TileType.FLOOR_MAGMA_FISSURE);
+        t.setTile(8, 15, TileType.FLOOR_MOLTEN_VENT);
+        t.addHazard(8.5f, 14.5f);
+        t.addHazard(8.5f, 15.5f);
 
         // Wall hoist winch drums
-        t.setTile(2, 10, TileType.PROP_CHAIN_SPOOL);
-        t.setTile(7, 10, TileType.PROP_CHAIN_SPOOL);
+        t.setTile(1, 14, TileType.PROP_CHAIN_SPOOL);
+        t.setTile(8, 8, TileType.PROP_CHAIN_SPOOL);
 
         return t;
     }
 
     /**
-     * 5. HazardConduitHorizontal: 20x10 elongated corridor with suspended iron catwalk over molten fissures.
+     * 5. HazardConduitHorizontal: 20x10 corridor with generous 4-tile wide walkway and perimeter hazard alcoves.
      */
     public RoomTemplate createHazardConduitHorizontal() {
         RoomTemplate t = new RoomTemplate("HazardConduitHorizontal", 20, 10, false);
@@ -237,28 +220,26 @@ public class RoomPrefabRegistry {
 
         buildBaseRoom(t);
 
-        // Central suspended iron grate catwalk (y=4..5, x=1..18)
+        // Wide, clear walkway across center (y=4..5 clean basalt, y=3 & y=6 border runners)
         for (int x = 1; x <= 18; x++) {
-            t.setTile(x, 4, TileType.FLOOR_IRON_GRATE);
-            t.setTile(x, 5, TileType.FLOOR_IRON_GRATE);
+            t.setTile(x, 3, TileType.FLOOR_BORDER);
+            t.setTile(x, 6, TileType.FLOOR_BORDER);
         }
 
-        // Flanking molten slag fissures and vents
-        int[] hazardX = {4, 8, 12, 16};
-        for (int hx : hazardX) {
-            t.setTile(hx, 2, TileType.FLOOR_MAGMA_FISSURE);
-            t.setTile(hx, 3, TileType.FLOOR_MOLTEN_VENT);
-            t.setTile(hx, 6, TileType.FLOOR_MOLTEN_VENT);
-            t.setTile(hx, 7, TileType.FLOOR_MAGMA_FISSURE);
-            t.addHazard(hx + 0.5f, 2.5f);
-            t.addHazard(hx + 0.5f, 3.5f);
-            t.addHazard(hx + 0.5f, 6.5f);
-            t.addHazard(hx + 0.5f, 7.5f);
-        }
+        // Localized perimeter hazard alcoves
+        t.setTile(8, 1, TileType.FLOOR_MAGMA_FISSURE);
+        t.setTile(9, 1, TileType.FLOOR_MOLTEN_VENT);
+        t.addHazard(8.5f, 1.5f);
+        t.addHazard(9.5f, 1.5f);
+
+        t.setTile(14, 8, TileType.FLOOR_MAGMA_FISSURE);
+        t.setTile(15, 8, TileType.FLOOR_MOLTEN_VENT);
+        t.addHazard(14.5f, 8.5f);
+        t.addHazard(15.5f, 8.5f);
 
         // Props in alcoves
-        t.setTile(10, 2, TileType.PROP_CHAIN_SPOOL);
-        t.setTile(10, 7, TileType.PROP_SLAG_CAULDRON);
+        t.setTile(14, 1, TileType.PROP_CHAIN_SPOOL);
+        t.setTile(8, 8, TileType.PROP_CHAIN_SPOOL);
 
         return t;
     }
@@ -442,15 +423,17 @@ public class RoomPrefabRegistry {
 
         // 3. Build Back Walls (North and East facing camera)
         // North Wall (y = h - 1, x from 0 to w - 2)
+        int furnaceNorthX = (w >= 14) ? (w / 2) : -1;
         for (int x = 0; x < w - 1; x++) {
-            boolean isFurnace = (x % 4 == 2);
+            boolean isFurnace = (x == furnaceNorthX);
             t.setTile(x, h - 1, isFurnace ? TileType.WALL_FURNACE_VENT : TileType.WALL_CAST_IRON_NW);
             if (isFurnace) t.addFurnace(x + 0.5f, h - 0.5f);
         }
 
         // East Wall (x = w - 1, y from 1 to h - 2)
+        int furnaceEastY = (h >= 14) ? (h / 2) : -1;
         for (int y = 1; y < h - 1; y++) {
-            boolean isFurnace = (y % 4 == 2);
+            boolean isFurnace = (y == furnaceEastY);
             t.setTile(w - 1, y, isFurnace ? TileType.WALL_FURNACE_VENT : TileType.WALL_CAST_IRON_NE);
             if (isFurnace) t.addFurnace(w - 0.5f, y + 0.5f);
         }

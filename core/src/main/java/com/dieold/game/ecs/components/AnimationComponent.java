@@ -17,6 +17,7 @@ public class AnimationComponent implements Component, Poolable {
     public boolean looping = true;
     public boolean finished = false;
     public AtlasRegion currentRegion = null;
+    public int lastComboStep = 0;
 
     public void setAction(String newAction, boolean loop, float duration) {
         if (!action.equals(newAction)) {
@@ -27,6 +28,11 @@ public class AnimationComponent implements Component, Poolable {
         }
         this.looping = loop;
         this.frameDuration = duration;
+    }
+
+    public void resetStateTime() {
+        this.stateTime = 0f;
+        this.finished = false;
     }
 
     @Override
@@ -40,5 +46,6 @@ public class AnimationComponent implements Component, Poolable {
         looping = true;
         finished = false;
         currentRegion = null;
+        lastComboStep = 0;
     }
 }
